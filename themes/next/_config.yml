@@ -1,6 +1,6 @@
 menu:
   home: /
-  #categories: /categories
+  categories: /categories
   archives: /archives
   tags: /tags
   #about: /about
@@ -9,7 +9,7 @@ menu:
 favicon: /favicon.ico
 
 # Set default keywords (Use a comma to separate)
-keywords: "Hexo,next"
+keywords: "oohcode,Hexo,next"
 
 # Set rss to false to disable feed link.
 # Leave rss as empty to use site's feed link.
@@ -19,15 +19,15 @@ rss:
 # Icon fonts
 # Place your font into next/source/fonts, specify directory-name and font-name here
 # Avialable: default | linecons | fifty-shades | feather
-icon_font: default
-#icon_font: fifty-shades
+#icon_font: default
+icon_font: fifty-shades
 #icon_font: feather
 #icon_font: linecons
 
 # Code Highlight theme
 # Available value: normal | night | night eighties | night blue | night bright
 # https://github.com/chriskempson/tomorrow-theme
-highlight_theme: normal
+highlight_theme: night bright
 
 
 # MathJax Support
@@ -35,7 +35,7 @@ mathjax:
 
 
 # Schemes
-#scheme: Mist
+scheme: Mist
 
 
 # Automatically scroll page to section which is under <!-- more --> mark.
