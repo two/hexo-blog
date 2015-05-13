@@ -62,6 +62,9 @@ pagination_dir: page
 
 # Extensions
 ## Plugins: http://hexo.io/plugins/
+plugins:
+- hexo-math
+
 ## Themes: http://hexo.io/themes/
 theme: next
 
