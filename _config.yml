@@ -74,3 +74,7 @@ deploy:
   type: git
   repo: git@github.com:oohcoder/oohcoder.github.io.git 
   branch: master
+
+# Disqus
+disqus_shortname: itlog
+
