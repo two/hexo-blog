@@ -4,10 +4,10 @@
 
 # Site
 title: OohCode
-subtitle:
+subtitle: 好奇的码农~
 description:
 author: sean chen
-language: zh-CN
+language: zh-Hans
 timezone:
 
 # URL
@@ -71,12 +71,20 @@ theme: next
 ## Docs: http://hexo.io/docs/deployment.html
 deploy:
   type: git
-  repo: git@github.com:oohcoder/oohcoder.github.io.git 
+  repo: https://github.com/oohcoder/oohcoder.github.io.git 
   branch: master
 
 # Disqus
-disqus_shortname: itlog
+#disqus_shortname: itlog
+# duoshuo
+duoshuo_shortname: oohcode
 
+# title, chinese available
+links_title: Links
+# links
+links:
+   OohCode: http://oohcode.com/
+#
 
 archive: 1
 category: 1
