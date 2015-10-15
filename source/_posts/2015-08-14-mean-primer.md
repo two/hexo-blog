@@ -1,7 +1,7 @@
 layout: title
 title: "mean primer"
 date: 2015-08-14 14:57:05
-tags:
+tags: [MEAN, angularjs, express, nodejs, moongodb]
 ---
 
 # MEAN入门 

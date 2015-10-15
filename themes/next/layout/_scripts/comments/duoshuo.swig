@@ -1,9 +1,9 @@
 {% if (theme.duoshuo and theme.duoshuo.shortname) or theme.duoshuo_shortname %}
 
   {% if theme.duoshuo %}
-    {% set duoshuo_shortname = config.duoshuo.shortname %}
+    {% set duoshuo_shortname = theme.duoshuo.shortname %}
   {% else %}
-    {% set duoshuo_shortname = config.duoshuo_shortname %}
+    {% set duoshuo_shortname = theme.duoshuo_shortname %}
   {% endif %}
 
   <script type="text/javascript">
@@ -17,4 +17,15 @@
       || document.getElementsByTagName('body')[0]).appendChild(ds);
     })();
   </script>
+    {% if theme.duoshuo_info.ua_enable %}
+     {% if theme.duoshuo_info.admin_enable %}
+     {% if theme.duoshuo_info.admin_nickname %}
+  	  <script type="text/javascript">
+  		var duoshuo_user_ID = {{theme.duoshuo_info.user_id}}
+      var duoshuo_admin_nickname="{{theme.duoshuo_info.admin_nickname}}"
+  	  </script>
+     {% endif %}
+  	<script src="{{ url_for(theme.js) }}/ua-parser.min.js"></script>
+  	<script src="{{ url_for(theme.js) }}/hook-duoshuo.js"></script>
+  {% endif %}
 {% endif %}
