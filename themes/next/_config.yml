@@ -96,3 +96,7 @@ social:
 
 # Theme version
 version: 0.4.5.1
+
+auto_excerpt:
+  enable: true
+  length: 250
