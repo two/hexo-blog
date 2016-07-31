@@ -14,7 +14,7 @@ apache httpd通过模块化的设计来适应各种环境，模块化的使用�
 ###perfork
 一个单独的控制进程(父进程)负责产生子进程，这些子进程用于监听请求并作出应答。Apache总是试图保持一些备用的 (spare)或是空闲的子进程用于迎接即将到来的请求。这样客户端就无需在得到服务前等候子进程的产生。在Unix系统中，父进程通常以root身份运行以便邦定80端口(注意这里是先绑定再fork的，所以意味着所有的子进程都监听了80端口)，而 Apache产生的子进程通常以一个低特权的用户运行。User和Group指令用于配置子进程的低特权用户。运行子进程的用户必须要对他所服务的内容有读取的权限，但是对服务内容之外的其他资源必须拥有尽可能少的权限。
 子进程的个数会随着请求量的大小动态调整。调整的策略与perfork的配置息息相关，httpd.conf的配置文件有以下配置:
-```
+```ini
 <IfModule prefork.c>
 StartServers 5
 MinSpareServers 5
@@ -46,7 +46,7 @@ MaxRequestsPerChild 0
   相对于prefork，worker是2.0 版中全新的支持多线程和多进程混合模型的MPM。由于使用线程来处理，所以可以处理相对海量的请求，而系统资源的开销要小于基于进程的服务器。但是，worker也使用了多进程，每个进程又生成多个线程，以获得基于进程服务器的稳定性。这种MPM的工作方式将是Apache 2.0的发展趋势。
 
 http.conf中也有关于worker的配置项:
-```
+```ini
 <IfModule worker.c>
 StartServers 3
 MaxClients 2000

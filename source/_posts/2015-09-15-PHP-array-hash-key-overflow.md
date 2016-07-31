@@ -7,7 +7,7 @@ tags: php
 >作为PHP最重要的数据类型HashTable其key值是有一定的范围的，如果设置的key值过大就会出现溢出的问题，下面根据其内部结构及实现原理详细探讨一下key值溢出问题。
 
 下面先给出一个key溢出的例子:
-```
+```php
 <?php
 $arr[1] = '1';
 $arr[18446744073708551617333333333333] = '18446744073708551617333333333333';
@@ -19,7 +19,7 @@ var_dump($arr);
 ```
 
 上面代码的输出结果如下:
-```
+```php
 array(6) {
   [1]=>
   string(1) "1"
@@ -38,7 +38,7 @@ array(6) {
 我们可以看到当key值比较小是没有问题，当key值很大时输出的值溢出了，临界点是`9223372036854775807`这个数字。
 下面分析一下原因 。首先我们先分析一下HashTable的结构(本文分析的是php-5.5.15版本的源码),可以通过源码看一下:
 
-```
+```c
 /* file: Zend/zend_hash.h */
 typedef struct bucket {
     ulong h;                        /* Used for numeric indexing */ /*对char *key进行hash后的值，或者是用户指定的数字索引值，可能会溢出*/
@@ -72,7 +72,7 @@ typedef struct _hashtable {
 
 ```
 假设我们已经对源码有了一定的了解了，我们可以知道`bucket.h`就是我们存储的key值，`bucket.h`的生成方法是根据`time33`算法获取的,对应到代码实现如下:
-```
+```c
 //对于字符串类型的key
 ZEND_API int _zend_hash_add_or_update(HashTable *ht, const char *arKey, uint nKeyLength, void *pData, uint nDataSize, void **pDest, int flag ZEND_FILE_LINE_DC)
 {
@@ -152,7 +152,7 @@ EMPTY_SWITCH_DEFAULT_CASE()
 
 这个key类型是`ulong`，也就是`unsigned long`类型。由于我们的机器是64位的，所以`unsigned long`类型的取值范围应该是`0~1844674407370955161`。PHP有两个预定义的变量`PHP_INT_MAX`和`PHP_INT_SIZE`对于64位的机器他们的值分别是9223372036854775807和8，这恰好是hasttable所能表示key的最大值,到这里也许你会有一个疑问:为什么`PHP_INT_MAX`的值比`key`的范围不一致?
 要回答这个问题首先要知道，hastTable的key输出可以是负值，这是怎么做到的呢？其实一个hashTable的hash值一定是一个正整数才行，但是输出的数和hash值只是一个对应关系，不需要都为正整数， 虽然我们定义的参数为`unsigned long`,其实我们却可以传一个负数,比如`$arr[-1] = 'test'`，这时候也是和传递一个正数的处理过程是一样的。这时候`h`的值其实是`-1`的补码。再回到上面的问题，为什么`PHP_INT_MAX`的值比`key`范围不一致。当我们负值 PHP_INT_MAX时，其值是`9223372036854775807`，当赋值再比这个大时,输出的却是负数。这其实跟我们使用`var_dump`这个函数有关系, 下面代码是使用var_dump输出数组时所使用的方法:
-```
+```c
 static int php_array_element_dump(zval **zv TSRMLS_DC, int num_args, va_list args, zend_hash_key *hash_key) /* {{{ */
 {
     int level;
