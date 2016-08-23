@@ -65,9 +65,9 @@ typedef struct _hashtable {
     zend_bool persistent; /*指出了Bucket内存分配的方式。如果persistent为TRUE，则使用操作系统本身的内存分配函数为Bucket分配内存，否则使用PHP的内存分配函数*/
     unsigned char nApplyCount; /*标记当前hash Bucket被递归访问的次数(防止多次递归)*/
     zend_bool bApplyProtection; /*标记当前hash桶允许不允许多次访问。不允许时，最多只能递归3次*/
-#if ZEND_DEBUG
+# if ZEND_DEBUG
     int inconsistent;
-#endif
+# endif
 } HashTable;
 
 ```
@@ -79,9 +79,9 @@ ZEND_API int _zend_hash_add_or_update(HashTable *ht, const char *arKey, uint nKe
     ulong h;
     uint nIndex;
     Bucket *p;
-#ifdef ZEND_SIGNALS
+# ifdef ZEND_SIGNALS
     TSRMLS_FETCH();
-#endif
+# endif
 
     IS_CONSISTENT(ht);
 
@@ -101,9 +101,9 @@ ZEND_API int _zend_hash_index_update_or_next_insert(HashTable *ht, ulong h, void
 {
     uint nIndex;
     Bucket *p;
-#ifdef ZEND_SIGNALS
+# ifdef ZEND_SIGNALS
     TSRMLS_FETCH();
-#endif
+# endif
 
     IS_CONSISTENT(ht);
     CHECK_INIT(ht);

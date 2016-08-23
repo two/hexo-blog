@@ -4,10 +4,10 @@ date: 2015-08-14 14:57:05
 tags: [MEAN, angularjs, express, nodejs, moongodb]
 ---
 
-# MEAN入门 
+#  MEAN入门 
 
-## MEAN简介
-### 什么是MEAN?
+##  MEAN简介
+###  什么是MEAN?
 根据[官方文档](http://meanjs.org/), MEAN就是MongoDB +  Express +  AngularJS +  Node.js的组合。那么组成MEAN的各个部分又分别是什么? 
 
 * `MongoDB`: 是一个基于分布式文件存储的NoSQL数据库。具体介绍和使用方法请参考[官方文档](http://docs.mongodb.org/manual/core/introduction/)
@@ -15,7 +15,7 @@ tags: [MEAN, angularjs, express, nodejs, moongodb]
 * `AngularJS`: 前端的MVC框架，更接近于 MVVM（Model-View-ViewModel)。具体介绍参考[官方文档](https://angularjs.org/)
 * `Node.js`: javascript的一个解析器，提供js在服务器端的运行环境。[官方网站](https://nodejs.org/)
 
-### 为什么是这个组合?
+###  为什么是这个组合?
 大家已经熟悉了LAMP/LNMP的开发模式，这些开发模式已经能够满足了现在web开发的绝大部分需求。而新型的MEAN开发模式则是另外一个尝试,其目的是为了解决现在开发中的一些问题，是开发更加高效。总结起来主要有以下几个优点:
 
 * Web服务器包含在了应用程序中，可以自动安装，部署过程得到了极大简化。
@@ -26,20 +26,20 @@ tags: [MEAN, angularjs, express, nodejs, moongodb]
 
 另外，任何开发模式都不是万能的，也就是没有银弹，这种开发模式可以給大家带来很多新的思想,开拓思路,对大家以后应对不同应用场景的需求是提供更多的参考。
 
-## MEAN安装
+##  MEAN安装
 
 MEAN只是一个组合，可以自己单独安装配置各个模块，也有现成的集成方案，如[meanjs](http://meanjs.org/)和[mean.io](http://mean.io/)(关于他们之间的区别可以参考stackoverflow上面的[讨论](http://stackoverflow.com/questions/23199392/difference-between-mean-js-and-mean-io))。这里我们选择的是meanjs作为开发框架。
 
 
 meanjs的安装可以参考[官方文档](http://meanjs.org/docs.html#getting-started)。这里需要提前介绍一下安装时用到的一些工具及安装遇到的问题和解决方案。
 
-### 常用工具
+###  常用工具
 
 * `npm`: 是Node Package Manage的简称,Node.js的包管理工具,它的主要功能就是管理node包，包括：安装、卸载、更新、查看、搜索、发布等。这个类似于centos系统上的yum工具. 可以通过package.json对npm进行配置。可以访问[官网](https://www.npmjs.com/)查看相关文档，也可以编写自己的npm包提交上去。(安利一下我写的一个很简单的包:[https://www.npmjs.com/package/hexo-tag-plantuml](https://www.npmjs.com/package/hexo-tag-plantuml))
 * `bower`: 也是包管理工具,由twitter推出.他和npm的区别是npm针对服务端的工具进行管理，bower则是主要管理前端页面的js依赖关系。通过bower.json和.bowerrc进行配置.
 * `grunt`: 构建javascript的工具,可以自动的完成代码规范的检查，文件合并，文件压缩，单元测试等流程(参考这边文档[grunt从入门到自定义项目模板](http://www.cnblogs.com/chyingp/archive/2013/05/11/grunt_getting_started.html)).详细信息参考[官网](http://gruntjs.com/)。
 
-### 安装流程
+###  安装流程
 这部分上面提到的meanjs官网有详细的步骤，简单概况一下就是:
 
 1. 安装Node.js&npm, MongoDB, Bower, Grunt等
@@ -61,7 +61,7 @@ meanjs的安装可以参考[官方文档](http://meanjs.org/docs.html#getting-st
 只需要这些，一个完成的网站就建成了。meanjs自带了一个博客登陆体系和博客浏览发布的功能。
 在根目录下运行`grunt`命令就可以启动服务器了，默认的端口是3000，我们可以通过ip:3000的方式来访问这个网站。
 
-## meanjs结构简介
+##  meanjs结构简介
 
 首先进入根目录可以看到如下的文件内容:
 ```
@@ -141,7 +141,7 @@ public/modules/
 ```
 要相对上面的结构有清晰的了解，必须对熟悉各个模块的用法，还要了解一个页面从访问到展现的流程是怎么样。 下面通过一个页面的访问流程来对整个架构的工作流程有一个大概的认识。
 
-## 打开一个页面的流程
+##  打开一个页面的流程
 为了便于我们假设你已经注册登录并创建了几篇文章，下面我们就依据对文章列表页的打开流程进行介绍。
 
 1. 首先通过menu进入文章列表页:`http://localhost:3000/#!/articles`我们可以看到文章的列表。通过观察这个url可以看出，其实`#`是一个锚点，后台的部分只是hash参数，前面的才是真正的url,也就是我们其实访问的是根目录，通过访问日志也可以看出来:

@@ -8,10 +8,10 @@ tags: []
 
 
 
-##产生文本摘要和高亮
-### 函数原型: 
+## 产生文本摘要和高亮
+###  函数原型: 
 `function BuildExcerpts ( $docs, $index, $words, $opts=array() )`
-### 相关文档:
+###  相关文档:
 ([官方文档](http://www.coreseek.cn/docs/coreseek_4.1-sphinx_2.0.1-beta.html#api-func-buildexcerpts))
 该函数用来产生文档片段（摘要）。连接到searchd，要求它从指定文档中产生片段（摘要），对命中词高亮，并返回结果。  
 
@@ -42,7 +42,7 @@ tags: []
     摘要提取算法倾向于提取更好的片段（与关键词完全匹配），然后是不在摘要中但是包含了关键词的片段。 通常情况下，它会尝试高亮查询的最佳匹配，并且在限制条件下尽可能的高亮查询中的所有关键词。 如果文档没有匹配查询，默认情况下将根据限制条件返回文档的头部。从版本1.10-beta开始，可以通过设置allow_empty属性位true以返回空的片段来替代默认方式。
 失败时返回false。成功时返回包含有片段（摘要）字符串的数组。
 
-### 使用方法
+###  使用方法
 代码片段：
 {% codeblock %}
 <?php
@@ -89,8 +89,8 @@ Array
     [2] => 京东老板刘强<span style='color:red'>东</span>
 )
 {% endcodeblock %}
-##mmseg 同义词/复合分词处理
-###文档([官方文档](http://www.coreseek.cn/opensource/mmseg/#coreseek_mmseg_complex))
+## mmseg 同义词/复合分词处理
+### 文档([官方文档](http://www.coreseek.cn/opensource/mmseg/#coreseek_mmseg_complex))
 mmseg 3.2.13版本开始，提供了类似复合分词的处理方式，供coreseek进行调用。
 其基本使用状况为：
 

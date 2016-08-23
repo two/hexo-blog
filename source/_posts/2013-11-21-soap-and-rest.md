@@ -12,7 +12,7 @@ tags: []
 所以我做不住了，我睡不着了，听说了REST后我知道了SOAP，知道SOAP后我知道了WSDL,但是始终百思不得其解，原来是我最基本的东西都不知道，何谈了解他们！所以之能静下心来从头开始了！
 
 
-##web server与 web service
+## web server与 web service
 其实这两个差的太远了，如果不细看还以为是一个东西，因为写法差不多，但是仔细品味一下就知道了:  
 
 * web server是指web服务器，如果apache、nginx等，主要是用来用来处理HTTP服务的底层软件(下次把学到的web server的发展说一下)。
@@ -37,7 +37,7 @@ tags: []
 针对第一个问题，我们知道M和C的作用不一样，M主要是底层服务，而C主要是业务逻辑相关的服务，网站开发过程中其性能瓶颈主要是集中在M这一层，所以有可能我们需要把M和C完全分离开，M放在单独的底层服务器，C放在前端机，这样就可以各司其职了。但是这样做就会面临第二个问题，它们之间如何通信？比如C需要调用M的某个函数，怎么实现？这就是SOAP和REST发挥作用的地方了，只要C和M都遵循这两个标准开发，整个世界就都清净了~
 (详细的过程下面将具体的协议时会说道。)
 
-##RPC协议
+## RPC协议
 说道这两个协议，不得不提一下RPC协议，其实他们都是在RPC的思想上发展起来的~
 《TCP/IP协议详解卷一：协议》这本书的第29章网络文件系统介绍了RPC协议。
 当终端用户编程的时候其实是不关心网络传输细节的，比如一个C/S架构的程序，Client只需要把网络的数据流当做是一个文件进行操作就可以了，不管是向服务器发送请求还是接受来之服务器的请求都只需调用系统函数就可以实现；同样Server端也是只需要调用系统函数获取客户端发出的请求并且队请求进行处理并把处理结果返回到客户端就行了。C和S之间的交互都是通过网络实现的，但是对于两端来说并无这个过程是透明的。中间的过程其实就是由RPC协议实现的，交互的过程中底层发生的细节入下：  
@@ -58,7 +58,7 @@ tags: []
 ![RPC报文](/assets/img/others/fig2.png)  
 
 
-##SOAP协议
+## SOAP协议
 上节说道的RPC协议是应用于网络通信服务，但是HTTP却不是为此设计的，RPC 会产生兼容性以及安全问题；防火墙和代理服务器通常会阻止此类流量。对于web应用来说通过HTTP协议进行通信是更好的方法,因为 HTTP 得到了所有的因特网浏览器及服务器的支持。SOAP 就是被创造出来完成这个任务的。  
 SOAP 提供了一种标准的方法，使得运行在不同的操作系统并使用不同的技术和编程语言的应用程序可以互相进行通信。(以上来[W3C](http://www.w3school.com.cn/soap/soap_intro.asp))
 
@@ -161,7 +161,7 @@ client.php
 {% codeblock %}
 <?php
 
-#$client = new SoapClient('http://www.soap.com/service.php?wsdl');
+# $client = new SoapClient('http://www.soap.com/service.php?wsdl');
 $client = new SoapClient('http://www.soap.com/service.php?wsdl');
 $res1 = $client->__soapCall('userData',array('operation'=>'getInfo','statement'=>'111'));
 print_r($res1);
@@ -171,5 +171,5 @@ print_r($res1);
 上面这个例子客户端和服务端都是PHP写的，其实他们可以是不同的语言，只需要这个语言支持SOAP协议即可。
 根据以上的例子我相信你已经能对SOAP有个清晰的定义了。根据SOAP的特点可以知道SOAP对于分布式的服务和跨语言的通信提供了一个很好的方案，但是就不足的就是它需要额外定义的SOAP协议，WSDL描述性文件等，具有一定的复杂性。随着HTTP协议的发展，它本身其实已经具有了独立承担这个服务的能力了，利用HTTP协议本身我们能够做得更好，这就是下面要讲的REST协议。
 
-##REST协议
+## REST协议
 在读这个之前请先移步到[理解本真的REST架构风格](http://www.infoq.com/cn/articles/understanding-restful-style)这篇文章

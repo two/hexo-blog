@@ -8,11 +8,11 @@ tags: []
 
 >项目中原来使用的是solr,由于solr是java写的，团队中没有java的经验，并且原来维护的人离职了，所以改用[sphinx search](http://sphinxsearch.com/)来做项目的内部检索服务，由于中文的特殊性，我们选择了[coreseek](http://www.coreseek.cn/)这个基于sphinx的中文搜索引擎。但是好像这个好久没人维护了～一直停留在了4.1beta版本～
 
-## 下载解压
+##  下载解压
 源码下载地址[oreseek-3.1-beta.tar.gz](http://www.coreseek.cn/uploads/csft/4.0/coreseek-4.1-beta.tar.gz);
 解压下载的文件,进入目录`cd coreseek-4.1-beta`;
 
-##安装中文分词库mmseg
+## 安装中文分词库mmseg
 
 * `cd mmseg-3.2.14/`
 * `./bootstrap`
@@ -49,7 +49,7 @@ txtHead[2] = (char)191;
 {% endcodeblock %}
 再次运行`make && make install`，终于成功了～
 到这里mmseg就算安装成功了
-##安装coreseek
+## 安装coreseek
 * `cd csft-4.1/`
 * `sh buildconf.sh`
 * `./configure --prefix=/usr/local/coreseek  --without-unixodbc   
@@ -57,7 +57,7 @@ txtHead[2] = (char)191;
 --with-mmseg-libs=/usr/local/mmseg3/lib/ --with-mysql`
 * `make && make install`
 
-##测试mmseg分词，coreseek搜索（需要预先设置好字符集为zh_CN.UTF-8，确保正确显示中文）
+## 测试mmseg分词，coreseek搜索（需要预先设置好字符集为zh_CN.UTF-8，确保正确显示中文）
 {% codeblock %}
 $ cd testpack
 $ cat var/test/test.xml    #此时应该正确显示中文

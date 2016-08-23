@@ -7,9 +7,9 @@ tags: [python,]
 ---
 
 
-##如何选择已经安装的不同版本？
+## 如何选择已经安装的不同版本？
 其实很简单。以myproject为例：`easy_install myproject==version` 就可以了，默认是先从本地开始找，如果本地找不到就会从远程源上找。
-##能不能指定安装路径？
+## 能不能指定安装路径？
 经过再次了解，发现其实是可以的,`easy_install -h`命令可以看到有以下两条：
 {% codeblock %}
   --install-dir (-d)             install package to DIR

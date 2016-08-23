@@ -8,9 +8,9 @@ tags: [markdown]
 
 >*现在已经对markdown痴迷了，一直在折腾，想以后把markdown 作为我不管是写博客还是写文档的标准文件格式，因为据说它可以转换成很多其他的格式，适应在不同的设备上使用，这就是一劳永逸啊。可以过程却是很坑爹啊～*
 
-##工具选择
+## 工具选择
 Google 了很久，终于发现一个强大的工具：[pandoc](http://johnmacfarlane.net/pandoc/)。于是苦逼的旅程开始了～
-###linux下安装：
+### linux下安装：
 
 1. pandoc[下载安装](http://johnmacfarlane.net/pandoc/installing.html)页面竟然没有redhat?
 2. 查看一下发现有一个[all-platforms](http://johnmacfarlane.net/pandoc/installing.html#all-platforms)

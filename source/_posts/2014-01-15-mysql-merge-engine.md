@@ -8,7 +8,7 @@ tags: []
 
 >*最近由于项目需求，使用了Merge Engine这个Mysql数据库引擎，看着[官方文档](http://dev.mysql.com/doc/refman/5.6/en/merge-storage-engine.html)对其了解了一下。总结加翻译一下～*
 
-##MERGE引擎初体验
+## MERGE引擎初体验
 MERGE存储引擎又叫MRG_MyISAM存储引擎，可以把许多相同的MyISAM表可以聚集到一个表来使用。“相同”的意思是所有的表要有相同的列和相同的索引信息。  
 MERGE引擎的另一个代替方案是分割(partitioned)表(把一个独立的分割后的表放到一个单独的文件中)。分割表是一个比MERGE更好的方案，具体请参考第18章[Partitioning](http://dev.mysql.com/doc/refman/5.6/en/partitioning.html)的内容。  
 当建立一个MERGE引擎表时，会产生两个文件：`.frm`文件存储的是表的格式,`.MRG`文件包含的是这个MERGE表所包含的MyISAM表的名字(这些表可以不在同一个数据库中)。
@@ -27,7 +27,7 @@ INSERT_METHOD = no: MERGE表不允许插入数据。
 1. 删除这个MERGE表，重新create一个。
 2. 使用`ALTER TABLE tbl_name UNION=(...)`, 改变所包含的表。
 
-##MERGE实现原理
+## MERGE实现原理
 由于文档没有说MERGE的内部实现原理，根据我的猜测应该是这样的，MERGE表只是记录了所包含的每个表的名字和表共同的结构，当我对表的内容进行检索时，其实MERGE是分别对它包含的每个表进行了检索，然后输出了结果，这个可以做个验证：  
 t是表t1，t2的MERGE表，一条记录分别在t1和t里检索
 {% codeblock %}
@@ -47,8 +47,8 @@ mysql> explain select * from t where a =1;
 {% endcodeblock %}
 发现，对于主键进行检索时，MERGE的检索此时总是等于它包含的表的数量，而单个表进行检索时是直接在本表进行检索的。也就是说其实MERGE表只是一个聚合结构，并不含索引和数据，其操作都是在它包含的表中逐个进行的，其复杂度是单个表的和。
 
-##MERGE 优缺点
-###优点：
+## MERGE 优缺点
+### 优点：
 
 * 对分表的管理更加简单。比如log表,可以根据时间进行分别，然后对其进行压缩，最后通过建立MERGE表来操作数据。
 * 获取更快的速度。可以把一个很大的只读表拆分为多个独立的表，放到不同的磁盘上，通过MERGE表结构来查询的速度要比查一个大表快的多。 
@@ -58,7 +58,7 @@ mysql> explain select * from t where a =1;
 * 可以突破MyISAM表大小的限制。每个MyISAM表都有大小的限制，但是MERGE没有。
 * 对一个表也可以建立MERGE表，但是对性能并没有什么提升。only a couple of indirect calls and memcpy() calls for each read （这句话不知道如何翻译）
 
-###缺点：
+### 缺点：
 
 * MERGE表只能对MyISAM引擎的表建立。
 * MERGE引擎不支持MyISAM引擎的一些特性。例如不能建立FULLTEXT索引，可以在MyISAM上建立，但是不能通过MERGE表来使用。
@@ -66,7 +66,7 @@ mysql> explain select * from t where a =1;
 * MERGE表比MyISAM表需要更多的文件描述。 If 10 clients are using a MERGE table that maps to 10 tables, the server uses (10 × 10) + 10 file descriptors. (10 data file descriptors for each of the 10 clients, and 10 index file descriptors shared among the clients.)，这个也不太明白。
 * 读索引比较慢。当使用索引时，MERGE需要对它包含的每个表进行查询。这让MERGE表在eq_ref搜索时很慢，但是在ref搜索时不会太慢。
 
-##MERGE 存在的问题
+## MERGE 存在的问题
 捡总要的说了
 
 * 如果改变一个原来是MERGE引擎的表为非MERGE引擎，那么MERGE表的映射就没有了，所包含的表的所有数据都会copy的修改后的表中。

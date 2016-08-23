@@ -8,7 +8,7 @@ tags: [python]
 
 >*前面介绍了python的打包工具setuptools的用法，这里对其配置文件setup.py进行一个详细的介绍，以便以后使用的时候能够找到相应的配置。*
 
-##常见的参数
+## 常见的参数
 这里的参数主要是参考[setuptools官方文档](http://pythonhosted.org/setuptools/setuptools.html#new-and-changed-setup-keywords)而来，下面经常用到的参数进行一个详细的介绍，以后要是有其他的参数，再做补充。
 **name**  
 这个参数主要是标识工程的名字。这个名字就是打包后的包的名字。  

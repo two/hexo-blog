@@ -8,21 +8,21 @@ tags: [python, setuptools]
 
 >*python的打包方式有很多种，而且针对不同的平台又有很多不同的方式，这里指针对linux平台进行介绍……*
 
-##1 python打包工具选择  
+## 1 python打包工具选择  
 关于python打包相关的工具，这篇文档有一个[列表](https://python-packaging-user-guide.readthedocs.org/en/latest/projects.html#)，其中打包工具主要分为pip, dislib, setuptools, distribute(已经于setuptools合并）。还有博客也是关于python 打包工具的，[这篇博客](http://www.ituring.com.cn/article/19090)对于python的各种打包工具，及其优缺点写的很详细，里面说的Distutils2是更为先进的打包工具，但是适用范围还不是太广泛，这里先不做研究了。经过综合对比，目前选中setuptools和pip这两个个比较成熟的打包工具，下面就对他们用法和原理分别进行详细的介绍。  
 
-###2 setuptools
+### 2 setuptools
 [setuptools的官方文档地址](http://peak.telecommunity.com/DevCenter/setuptools)  
 首先来一个简单的上手过程，通过这个过程可以快速了解setuptools怎么用的，详情请移步博客[python egg 学习笔记](http://www.worldhello.net/2010/12/08/2178.html)
 看完这个教程就能自己做一个简单的包了，但是这里只是涉及了一种包，就是python import 引过来，然后调用其中的函数，还有一种也很普遍的方式就是命令行方式，例如jekyll命令，sentry命令等，这种方式其实可以参考[这篇文档](http://www.scotttorborg.com/python-packaging/index.html)。跟随这两篇博客基本就可以满足我们的需求了
 这里对其安装步骤进行一下总结：  
-####2.1, 安装setuptools
+#### 2.1, 安装setuptools
 {% codeblock %}
     $ wget http://peak.telecommunity.com/dist/ez_setup.py
     $ sudo python ez_setup.py
 {% endcodeblock %}
 其实安装的方式有很多种，具体方法参见前面提到的博客  
-####2.2, 建立一个工程
+#### 2.2, 建立一个工程
 {% codeblock %}
     $ mkdir mypackage 
     $ cd mypackage
@@ -54,7 +54,7 @@ setup.py的内容如下：
  22         )
 {% endcodeblock %}
 第8行表示这个工程的名称，第9行是这个工程的版本号，第10行表示对指定目录的文件打包，其他信息请查看相关文档，这里先对用到的配置项进行讲解  
-####2.3, 通过命令行打包到本地
+#### 2.3, 通过命令行打包到本地
 这是一个空的工程就建好了，我们可以通过一条简单的命令对它进行打包了：
 {% codeblock %}
    python setup.py bdist_egg 
@@ -81,7 +81,7 @@ setup.py的内容如下：
     dist/myproject-0.1.0-py2.6.egg: Zip archive data, at least v2.0 to extract
 {% endcodeblock %}
 其实egg文件就一个压缩包,关于egg的介绍请参考[这篇博客](http://peak.telecommunity.com/DevCenter/PythonEggs)  
-####2.4, 写自己的程序并打包到本地
+#### 2.4, 写自己的程序并打包到本地
 在当前目录下建立一个文件夹，名字与setup.py里写的name字段保持一致,然后在进入目录，创建__init__.py文件
 {% codeblock %}
     $ mkdir myproject
@@ -140,7 +140,7 @@ setup.py的内容如下：
             910                     7 files
 {% endcodeblock %}
 可以看到里面多出来一个myproject文件夹和它所包含的文件，正是我们刚才创建的。  
-####2.5, 打包到远程
+#### 2.5, 打包到远程
 这里我们只是把打的包放在了本地, 也可以根据前面讲的打包到远程的源中，这里结合前面的博客把这个包发送到私有源，命令如下：
 {% codeblock %}
 $ python setup.py sdist upload -r local 
@@ -154,7 +154,7 @@ Server response (200): OK
 {% endcodeblock %}
 这样我们就可以把本地的包上传到了远程的私有源`local`上供其他人使用了。
 
-####2.6, 安装和使用
+#### 2.6, 安装和使用
 安装可以分为本地安装和远程安装。这个和之前私有源建立的博客中讲的一样，具体方式如下：
   **1,本地安装:**  
 {% codeblock %}
@@ -174,7 +174,7 @@ $ python -c "from myproject import test; test()"
  **2,远程安装:**  
 我们可以安装远程私有源的包到本地:
 {% codeblock %}
-#安装远程包到本地
+# 安装远程包到本地
 $ easy_install -i http://10.11.215.61:3141/simple/ myproject  
   Searching for myproject
   Reading http://10.11.215.61:3141/simple/myproject/
@@ -190,7 +190,7 @@ $ easy_install -i http://10.11.215.61:3141/simple/ myproject
   Finished processing dependencies for myproject
 {% endcodeblock %}
 这时刚才上传到私有源的包就安装在了本地，安装路径可以从安装的信息中看到。安装的路径为：`/usr/lib/python2.6/site-packages/myproject-0.1.0-py2.6.egg`  
-####2.7, 代码结构规划
+#### 2.7, 代码结构规划
 一般情况下为了使代码看起来更加有条理，我们把源代码放到src文件夹下。首先把myproject文件夹移动到src中，然后删除以前产生的文件，只保留自己写的问文件，其结构大致如下：
 
 {% codeblock %}
@@ -202,9 +202,9 @@ $ easy_install -i http://10.11.215.61:3141/simple/ myproject
 {% endcodeblock %}
 setup.py内容也要修改，修改默认的搜索路径为src，而不是从根目录开始，内容如下：
 {% codeblock %}
-#setup.py
-#!/usr/bin/env python
-#-*- coding:utf-8 -*-
+# setup.py
+# !/usr/bin/env python
+# -*- coding:utf-8 -*-
 
 from setuptools import setup, find_packages
 
@@ -254,7 +254,7 @@ $ tree
 8 directories, 10 files
 {% endcodeblock %}
 然后用同样的方式进行安装运行，依然没有问题。  
-####2.8, 卸载程序
+#### 2.8, 卸载程序
 安装过的python包，如果要删除该如何做呢？
 首先要找到easy-install.pth文件,这个文件是自动查询安装包的路径的文件，如果把安装包的路径从这个文件中去掉，将找不到要使用的包
 当运行安装程序发现最后几行信息:  

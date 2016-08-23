@@ -52,7 +52,7 @@ ConcreteSubjectB ..> ConcreteObserverB
 `Observer`是观察者的抽象类。所有的观察者都继承自这个类。每个观察者类都要实现一个`notify()`函数。这个函数是当被观察者发生变化需要通知观察者的时候调用的，也就是`notifyObserver()`调用的。
 
 
-##代码事例:
+## 代码事例:
 ```php
 class Student implements SplObserver{
     protected $tipo = "Student";
