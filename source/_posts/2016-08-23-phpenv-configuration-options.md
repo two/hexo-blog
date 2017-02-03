@@ -4,7 +4,7 @@ date: 2016-08-23 16:45:47
 tags: php
 ---
 
-##自定义配置
+## 自定义配置
 在使用phpenv安装php是，有时候需要对内置扩展进行自定义控制是否开启，比如我要开启`zts`模块, 源码安装我么可以用`./configure --enable-maintainer-zts`来安装，但是phpenv不支持直接这么写，这时候就要phpenv自己的方式来安装了。可以在phpenv安装的路径里找到下面这个文件：`~/.phpenv/plugins/php-build/bin/php-build`, 这个文件就是phpenv install时运行的脚本，可以找到如下内容:
 ```php
 ...

@@ -48,15 +48,15 @@ Class01 <|-- Class02
 实现，是指类(class)实现一个接口(interface)的功能,接口有关的定义在PHP里参见文档[对象接口](http://php.net/manual/zh/language.oop5.interfaces.php)。相当于C++里的抽象类。关系图如下:
 {% plantuml %}
 InterfaceA <|.. ClassB
-InterfaceA: +function1();
-ClassB: +function1();
+InterfaceA : +function1();
+ClassB : +function1();
 {% endplantuml %}
 ### 依赖
 依赖关系（Dependency）可以简单的理解为一个类A使用到了另一个类B，而这种使用关系是具有偶然性、临时性的、非常弱的，但是B类的变化会影响到A；表现在代码层面，为类B作为参数被类A在某个method方法中使用；用带燕尾箭头的虚线表示。
 {% plantuml %}
 skinparam classAttributeIconSize 0
 ClassB <.left. ClassA
-ClassA: +depend(ClassB classB):void
+ClassA : +depend(ClassB classB):void
 {% endplantuml %}
 ### 关联
 一个关联（Association）代表一个家族的联系。
@@ -65,7 +65,7 @@ ClassA: +depend(ClassB classB):void
 {% plantuml %}
 skinparam classAttributeIconSize 0
 ClassB <-left- ClassA
-ClassA: -classB:ClassB
+ClassA : -classB:ClassB
 {% endplantuml %}
 在比如人（person）与杂志(magazine)是一种关联(双向):
 {% plantuml %}
