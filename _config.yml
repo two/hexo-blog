@@ -7,8 +7,8 @@ title: OohCode
 subtitle: 好奇的码农~
 description:
 author: sean chen
-#language: zh-Hans
-language: zh-CN 
+language: zh-Hans
+#language: zh-CN 
 timezone:
 
 # URL
@@ -67,8 +67,9 @@ plugins:
 - hexo-math
 
 ## Themes: http://hexo.io/themes/
-theme:  Hacker
+#theme:  Hacker
 #theme: TKL
+theme: next
 # Deployment
 ## Docs: http://hexo.io/docs/deployment.html
 deploy:
