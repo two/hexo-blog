@@ -1,4 +1,4 @@
-title: golang http client
+title: golang http client 连接池
 date: 2018-06-01 10:44:03
 tags: golang
 ---
@@ -245,4 +245,197 @@ endif
 stop
 {% endplantuml %}
 从上面可以看到，获取链接会优先从连接池中获取，如果连接池中没有可用的连接，则会创建一个连接或者从刚刚释放的连接中获取一个，这两个过程时同时进行的，谁先获取到连接就用谁的。
-上面说到连接池，每个`client`的连接池结构是这样的:`idleConn   map[connectMethodKey][]*persistConn`。
+当新创建一个连接, 创建连接的函数定义如下:
+```
+func (t *Transport) dialConn(ctx context.Context, cm connectMethod) (*persistConn, error)
+```
+最后这个函数会通过goroutine调用两个函数:
+```
+go pconn.readLoop()
+go pconn.writeLoop()
+```
+其中`readLoop`主要是读取从server返回的数据,`writeLoop`主要发送请求到server,在`readLoop`函数中有这么一段代码:
+```
+// Put the idle conn back into the pool before we send the response
+// so if they process it quickly and make another request, they'll
+// get this same conn. But we use the unbuffered channel 'rc'
+// to guarantee that persistConn.roundTrip got out of its select
+// potentially waiting for this persistConn to close.
+// but after
+alive = alive &&
+!pc.sawEOF &&
+    pc.wroteRequest() &&
+tryPutIdleConn(trace)
+```
+这里可以看出，在处理完请求后，会立即把当前连接放到连接池中。
+
+上面说到连接池，每个`client`的连接池结构是这样的:`idleConn   map[connectMethodKey][]*persistConn`。其中`connectMethodKey`的值就是`client`连接的server的`host`值, map的值是一个`*persistConn`类型的`slice`结构，这里就是存放连接的地方，`slice`的长度由`MaxIdleConnsPerHost`这个值指定的，当我们不设置这个值的时候就取默认的设置:`const DefaultMaxIdleConnsPerHost = 2`。
+
+另外这里我们插一个知识点，对于HTTP协议，有一个header值"Connections", 这个值的作用就是`client`向`server`端发请求的时候，告诉`server`是否要保持连接。具体的可以参考[rfc2616](https://www.w3.org/Protocols/rfc2616/rfc2616-sec8.html)。 这个协议头的值有两种可能(参考[MDN文档](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Connection)):
+```
+Connection: keep-alive
+Connection: close
+```
+当值为`keep-alive`时，`server`端会保持连接，一直到连接超时。当值为`close`时,`server`端会在传输完`response`后主动断掉`TCP`连接。在`HTTP/1.1`之前，这个值默认是`close`, 之后是默认`keep-alive`, 而`net/http`默认的协议是`HTTP/1.1`也就是默认`keep-alive`, 这个值可以通过`DisableKeepAlives`来设置。
+
+从上面的介绍我们可以看出，`net/http`默认是连接复用的，对于每个server会默认的连接池大小是2。
+接下来我们看一下连接是如何放进连接池的:
+```go
+func (t *Transport) putOrCloseIdleConn(pconn *persistConn) {
+    if err := t.tryPutIdleConn(pconn); err != nil {
+        pconn.close(err)
+    }
+}
+
+
+// tryPutIdleConn adds pconn to the list of idle persistent connections awaiting
+// a new request.
+// If pconn is no longer needed or not in a good state, tryPutIdleConn returns
+// an error explaining why it wasn't registered.
+// tryPutIdleConn does not close pconn. Use putOrCloseIdleConn instead for that.
+func (t *Transport) tryPutIdleConn(pconn *persistConn) error {
+    if t.DisableKeepAlives || t.MaxIdleConnsPerHost < 0 {
+        return errKeepAlivesDisabled
+    }
+    if pconn.isBroken() {
+        return errConnBroken
+    }
+    if pconn.alt != nil {
+        return errNotCachingH2Conn
+    }
+    pconn.markReused()
+    key := pconn.cacheKey
+
+    t.idleMu.Lock()
+    defer t.idleMu.Unlock()
+    waitingDialer := t.idleConnCh[key]
+    select {
+    case waitingDialer <- pconn:
+        // We're done with this pconn and somebody else is
+        // currently waiting for a conn of this type (they're
+        // actively dialing, but this conn is ready
+        // first). Chrome calls this socket late binding. See
+        // https://insouciant.org/tech/connection-management-in-chromium/
+        return nil
+    default:
+        if waitingDialer != nil {
+            // They had populated this, but their dial won
+            // first, so we can clean up this map entry.
+            delete(t.idleConnCh, key)
+        }
+    }
+    if t.wantIdle {
+        return errWantIdle
+    }
+    if t.idleConn == nil {
+        t.idleConn = make(map[connectMethodKey][]*persistConn)
+    }
+    idles := t.idleConn[key]
+    if len(idles) >= t.maxIdleConnsPerHost() {
+        return errTooManyIdleHost
+    }
+    for _, exist := range idles {
+        if exist == pconn {
+            log.Fatalf("dup idle pconn %p in freelist", pconn)
+        }
+    }
+    t.idleConn[key] = append(idles, pconn)
+    t.idleLRU.add(pconn)
+    if t.MaxIdleConns != 0 && t.idleLRU.len() > t.MaxIdleConns {
+        oldest := t.idleLRU.removeOldest()
+        oldest.close(errTooManyIdle)
+        t.removeIdleConnLocked(oldest)
+    }
+    if t.IdleConnTimeout > 0 {
+        if pconn.idleTimer != nil {
+            pconn.idleTimer.Reset(t.IdleConnTimeout)
+        } else {
+            pconn.idleTimer = time.AfterFunc(t.IdleConnTimeout, pconn.closeConnIfStillIdle)
+        }
+    }
+    pconn.idleAt = time.Now()
+    return nil
+}
+```
+首先会尝试把连接放入到连接池中，如果不成功则`关闭连接`,大致流程如下:
+{% plantuml %}
+start
+if (DisableKeepAlives == true || MaxIdleConnsPerHost < 0) then (yes)
+    :关闭连接;
+else (no)
+    :创建一个管道waitingDialer用于接收立即释放的资源; 
+    fork
+        :优先把连接放入到waitingDialer中;
+        :关闭连接;
+        end
+    fork again
+        :default删除waitingDialer这个管道，防止阻塞;
+    fork again
+        :其它错误，关闭连接;
+        end
+    endfork
+    if (连接池已满) then (yes)
+    :关闭连接;
+    end
+    else (no)
+    :放入连接池;
+    endif
+endif
+end
+{% endplantuml %}
+如果`DisableKeepAlives`为`true`表示不使用连接复用，所以请求完后会把连接关掉，但是这里需要注意的是，同时发请求的时候我们会设置`Connections: close`, 所以`server`端发送完数据后就会自动断开，所以这种情况的连接其实是`server`端发起的。
+
+## 长连接与短连接
+前面我们已经讲过`net/http`默认使用`HTTP/1.1`协议，也就是默认发送`Connections: keep-alive`的头，让服务端保持连接，就是所谓的长连接。
+再看`DefaultTransport`的值:
+```
+// DefaultTransport is the default implementation of Transport and is
+// used by DefaultClient. It establishes network connections as needed
+// and caches them for reuse by subsequent calls. It uses HTTP proxies
+// as directed by the $HTTP_PROXY and $NO_PROXY (or $http_proxy and
+// $no_proxy) environment variables.
+var DefaultTransport RoundTripper = &Transport{
+    Proxy: ProxyFromEnvironment, //代理使用
+    DialContext: (&net.Dialer{
+        Timeout:   30 * time.Second, //连接超时时间
+        KeepAlive: 30 * time.Second, //连接保持超时时间
+        DualStack: true, //
+    }).DialContext,
+    MaxIdleConns:          100, //client对与所有host最大空闲连接数总和
+    IdleConnTimeout:       90 * time.Second, //空闲连接在连接池中的超时时间
+    TLSHandshakeTimeout:   10 * time.Second, //TLS安全连接握手超时时间
+    ExpectContinueTimeout: 1 * time.Second, //发送完请求到接收到响应头的超时时间
+}
+```
+当我们使用`DefaultTransport`时，就是默认使用的长连接。但是默认的连接池`MaxIdleConns`为100， `MaxIdleConnsPerHost`为2，当超出这个范围时，客户端会主动关闭到连接。
+如果我们想设置为短连接，有几种方法:
+1. 设置`DisableKeepAlives = true`: 这时就会发送`Connections:close`给server端，在server端响应后就会主动关闭连接。
+2. 设置`MaxIdleConnsPerHost < 0`: 当`MaxIdleConnsPerHost < 0`时，连接池是无法放置空闲连接的，所以无法复用,连接直接会在`client`端被关闭。
+
+## Server端出现大量的`TIME_WAIT`
+
+当我们在实际使用时，会发现`Server`端出现了大量的`TIME_WAIT`,要想深入了解其原因，我们首先先回顾一下`TCP`三次握手和四次分手的过程:
+![](/assets/img/golang/tcp_3_handshake.png)
+![](/assets/img/golang/tcp_4_handshake.png)
+图中可以看出，`TIME_WAIT`只会出现在主动关闭连接的一方,也就是`server`端出现了大量的主动关闭行为。
+默认我们是使用长连接的，只有在超时的情况下`server`端才会主动关闭连接。前面也讲到，如果超出连接池的部分就会在`client`端主动关闭连接，连接池的连接会复用，看着似乎没有什么问题。问题出在我们每次请求都会`new`一个新的`client`,这样每个`client`的连接池里的连接并没有得到复用，而且这时`client`也不会主动关闭这个连接，所以`server`端出现了大量的`keep-alive`但是没有请求的连接，就会主动发起关闭。
+
+todo:补充tcpdump的分析结果
+
+要解决这个问题以下几个方案:
+1. `client`复用，也就是我们尽量复用`client`，来保证`client`连接池里面的连接得到复用，而减少出现超时关闭的情况。
+2. 设置`MaxIdleConnsPerHost < 0`：这样每次请求后都会由`client`发起主动关闭连接的请求，`server`端就不会出现大量的`TIME_WAIT`
+3. 修改`server`内核参数: 当出现大量的`TIME_WAIT`时危害就是导致`fd`不够用,无法处理新的请求。我们可以通过设置`/etc/sysctl.conf`文件中的
+    ```
+    #表示开启重用。允许将TIME-WAIT sockets重新用于新的TCP连接，默认为0，表示关闭  
+    net.ipv4.tcp_tw_reuse = 1  
+    #表示开启TCP连接中TIME-WAIT sockets的快速回收，默认为0，表示关闭  
+    net.ipv4.tcp_tw_recycle = 1  
+    ```
+    达到快速回收和重用的效果，不影响其对新连接的处理。
+
+另外需要注意的是，虽然`DisableKeepAlives = true`也能满足连接池中不放空闲连接，但是这时候会发送`Connections: close`，这时`server`端还是会主动关闭连接，导致大量的`TIME_WAIT`出现，所以这种方法行不通。
+
+以上就是我总结的关于`net/http`中连接池相关的知识。
+
+
