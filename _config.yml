@@ -4,11 +4,11 @@
 
 # Site
 title: OohCode
-subtitle:
-description:
-keywords:
+subtitle: ooh my code
+description: 
+keywords: sean
 author: sean chen
-language:
+language: zh-CH
 timezone:
 
 # URL
@@ -75,9 +75,13 @@ pagination_dir: page
 ## Themes: https://hexo.io/themes/
 theme: Hacker
 
+feed:
+    type: atom
+    path: atom.xml
+
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
   type: git
-  repo: https://github.com/oohcoder/oohcoder.github.io.git 
+  repo: https://github.com/two/two.github.io.git 
   branch: master
