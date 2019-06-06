@@ -5,6 +5,24 @@ tags: [Go]
 
 ## OS 调度
 ## Go 调度
+
+被抢占后把 g 状态从 `_Grunning` 改为 `_Grunnable`。
+```go
+func goschedImpl(gp *g) {
+    status := readgstatus(gp)
+    if status&^_Gscan != _Grunning {
+        dumpgstatus(gp)
+        throw("bad g status")
+    }
+    casgstatus(gp, _Grunning, _Grunnable)
+    dropg()
+    lock(&sched.lock)
+    globrunqput(gp)
+    unlock(&sched.lock)
+
+    schedule()
+}
+```
 ## Go 调度的问题
 
 ### deadloop
@@ -94,19 +112,169 @@ if wait {
     }
 }
 ```
-这个地方的意思是如果发现`wait`不为0， 证明还有P正在运行，这时进入循环，循环内会每`100us`再进行一次抢占，直到所有的P都停止运行了才会退出这个循环(todo: 这个地方如何实现的？notetsleep为何总是返回false? 它与 wait之间的关系是怎么联系起来的?) 
-由于主`goroutine`是一个循环，及时给这个循环加上了抢占的标记，但是由于没有`morestack`的调用就不会用这个抢占标记，所以主`goroutine`就无法被枪占。
-而主`goroutine`中新启的`goroutine`，由于调用了runtime.GC(), 所以本身这个goroutine会被抢占，所以这个`goroutine`会停止执行，等待`GC`。
+为什么会在这个地方无法出来？下面分析一下具体原因。
+
+GC种一个步骤是要把所有的 p 都设置为`_Pgcstop` 状态后才能继续进行。 下面看看这个步骤是否能够完成。
+
+`stopTheWorldWithSema`函数更加详细的执行过程如下:
 ```go
-go func() {
-    for i := 0; i < 100; i++ {
-        ch <- 1
-            if i == 88 {
-                runtime.GC()
-            }
+func stopTheWorldWithSema() {
+    _g_ := getg()
+
+    // If we hold a lock, then we won't be able to stop another M
+    // that is blocked trying to acquire the lock.
+    if _g_.m.locks > 0 {
+        throw("stopTheWorld: holding locks")
     }
-}()
+
+    lock(&sched.lock)
+    sched.stopwait = gomaxprocs // 设置stopwait的初始值为最大的 p 的个数
+    atomic.Store(&sched.gcwaiting, 1) // 设置 gcwaiting = 1, 表示正在进入GC状态
+    preemptall() // 给所有的 p 发送抢占信号，如果成功，则对应的 p 进入 idle 状态
+    // stop current P
+    _g_.m.p.ptr().status = _Pgcstop // Pgcstop is only diagnostic.
+    sched.stopwait-- // 给他当前的设置状态后，stopwait个数减一 
+    // try to retake all P's in Psyscall status
+    // 遍历所有的 p 如果满足条件(p的状态为 _Psyscall)则释放这个 p , 并且把 p 的状态都设置成 _Pgcstop ; 然后stopwait--
+    for _, p := range allp {
+        s := p.status
+        if s == _Psyscall && atomic.Cas(&p.status, s, _Pgcstop) {
+            if trace.enabled {
+                traceGoSysBlock(p)
+                traceProcStop(p)
+            }
+            p.syscalltick++
+            sched.stopwait--
+        }
+    }
+    // stop idle P's
+    for {
+        p := pidleget() //获取idle 状态的 p, 从 _Pidle list 获取
+        if p == nil {
+           break
+        }
+        p.status = _Pgcstop // 把 p 状态设置为 _Pgcstop
+        sched.stopwait-- // 计数 stopwait --
+    }
+    wait := sched.stopwait > 0
+    unlock(&sched.lock)
+
+    // wait for remaining P's to stop voluntarily
+    if wait {
+        for {
+            // wait for 100us, then try to re-preempt in case of any races
+            if notetsleep(&sched.stopnote, 100*1000) {
+                noteclear(&sched.stopnote)
+                break
+            }
+            // 再次给所有的 p 发送 抢占信号
+            preemptall()
+        }
+    }
+...
+}
 ```
+
+上面函数把所有非`_Prunning`状态的 p 都设置为了 `_Pgcstop` 状态，对于 `_Prunning` 状态的 p 如何设置其为 `_Pgcstop` 状态呢? 主要是通过 `preemptall()`函数给每个 p 发送抢占信号
+`preemptall()` 其实时调用了 `preemptone()` 前面我们已经讲了具体的原理。被抢占后 p 重新进入调度阶段
+
+```go
+func schedule() {
+    _g_ := getg()
+
+    if _g_.m.locks != 0 {
+        throw("schedule: holding locks")
+    }
+
+    if _g_.m.lockedg != 0 {
+        stoplockedm()
+        execute(_g_.m.lockedg.ptr(), false) // Never returns.
+    }
+
+    // 我们不应该调度一个正在执行 cgo 调用的 g
+    // 因为 cgo 在使用当前 m 的 g0 栈
+    // We should not schedule away from a g that is executing a cgo call,
+    // since the cgo call is using the m's g0 stack.
+    if _g_.m.incgo {
+        throw("schedule: in cgo")
+    }
+
+top:
+    if sched.gcwaiting != 0 {
+        // 如果还在等待 gc，则
+        gcstopm()
+        goto top // 循环执行
+    }
+...
+```
+
+上面说调度器会会把 `gcwaiting`设置为`1`, 所以这里会进入 `gcstopm()`, 直到所有的 m 都被`stop`
+```go
+func gcstopm() {
+    _g_ := getg()
+
+    if sched.gcwaiting == 0 {
+        throw("gcstopm: not waiting for gc")
+    }
+    if _g_.m.spinning {
+        _g_.m.spinning = false
+        // OK to just drop nmspinning here,
+        // startTheWorld will unpark threads as necessary.
+        if int32(atomic.Xadd(&sched.nmspinning, -1)) < 0 {
+            throw("gcstopm: negative nmspinning")
+        }
+    }
+    _p_ := releasep()
+    lock(&sched.lock)
+    _p_.status = _Pgcstop //设置 p 状态为 _Pgcstop
+    sched.stopwait--
+    if sched.stopwait == 0 {
+        notewakeup(&sched.stopnote)
+    }
+    unlock(&sched.lock)
+    stopm()
+}
+```
+在 `gcstopm()` 会把 p 的状态置为 `_Pgcstop`。
+
+**但是死循环的 g 不会被抢占，所以其 p 状态会一直是  Prunning 无法被设置为 Pgcstop**
+
+再回到前面进入死循环的地方:
+```go
+// wait for remaining P's to stop voluntarily
+if wait {
+    for {
+        // wait for 100us, then try to re-preempt in case of any races
+        if notetsleep(&sched.stopnote, 100*1000) {
+            noteclear(&sched.stopnote)
+            break
+        }
+        preemptall()
+    }
+}
+```
+这里进入死循环的原因是条件
+```go
+notetsleep(&sched.stopnote, 100*1000) == true
+```
+不满足
+`notetsleep`函数内部每隔一段时间就会返回:
+```go
+return atomic.Load(key32(&n.key)) != 0 // n.key 为参数 &shced.stopnote.key的值
+```
+这个函数意思是`&sched.stopnote.key != 0`
+如果要想让返回值为 `true` 就需要满足上面的条件。 `stopnote.key`的值有两个函数可以控制:
+* `notewakeup` 把 `stopnote` 设置为 1
+* `noteclear 把 `stopnote` 设置为 0
+所以我们需要调用`notewakeup`才行。而这个函数我们可以看到是在 `gcstopm()`种有调用:
+```go
+sched.stopwait--
+if sched.stopwait == 0 {
+    notewakeup(&sched.stopnote)
+}
+```
+由于存在 g 无法被抢占，所以其对应的 p 不会释放, `stopwait`也就不能为`0`, 所以也就无法执行`notewakeup`,最终导致上面的循环无法出来。
+
 死锁状态的发生:
 * GC: 要想进行`GC`就需要所有的P都转为空闲状态，而主`goroutine`无法被抢占，对应的`P`也无法进入空闲。所以`GC`会一直阻塞。
 * 新启动的`goroutine`: 由于新启动的`goroutine`也进入了空闲状态
