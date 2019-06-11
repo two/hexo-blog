@@ -447,7 +447,9 @@ go tRunner(t, f)
 上面这种形态就是目前我们进行单元测试的**最佳实践**了。
 
 ## 高级
-### 外部依赖
+
+### 理论知识
+#### 外部依赖
 外部依赖是指我们的函数需要调用其他的函数，外部依赖有可能涉及到一些数据依赖，网络依赖等。关于单元测试中如何解决外部依赖的问题, 常用的方法是: **Test Double(测试替身)**, 而它也分很多种:
 * **Dummy** objects are passed around but never actually used. Usually they are just used to fill parameter lists.
 * **Fake** objects actually have working implementations, but usually take some shortcut which makes them not suitable for production (an in memory database is a good example).
@@ -455,21 +457,587 @@ go tRunner(t, f)
 * **Spies** are stubs that also record some information based on how they were called. One form of this might be an email service that records how many messages it was sent.
 * **Mocks** are what we are talking about here: objects pre-programmed with expectations which form a specification of the calls they are expected to receive.
 
-### 编写可测试代码
-#### 函数要短小
+看上去有点儿头大，分这么多类型而且他们的接线感觉也比较模糊，为了便于理解我们不对这些概念做过多的解读，我们后面把所有我们的工作都看做是`Mock`
+
+#### 编写可测试代码
+##### 函数要短小
 *函数的第一规则是要短小。第二条规则是还要短小* ------------ 《代码整洁之道》
 至于如何才算短小，一般建议是不超过100行，也就是显示器一屏所显示的行数。
 函数越短小那么单元测试的编写就越简单。
 
-#### 函数功能要单一
+##### 函数功能要单一
 *函数应该做一件事。做好这件事。只做一件事。* --------------《代码整洁之道》
 一个函数做的事情越少其逻辑越简单，难么对应的单元测试也就越简单。
-#### 减少外部依赖
+##### 减少外部依赖
 这里要明确的是我们要测试的是自己的函数而不是调用的函数，所以我们应该把中重点放到自己的函数上，至于外部依赖的函数越少越好，因为每个外部依赖都增加了我们单元测试的不确定性。
-#### 依赖模块要方便 Mock
-### 面相接口编程
-### 依赖注入
-### Mock
+##### 依赖模块要方便 Mock
+为了专注我们自己模块的测试，对于外部的模块我们一般都会使用`Mock`的方法, 所以依赖模块如果好`Mock`的话测试起来就会方便很多，反之会很麻烦。
+
+##### 方便依赖注入
+一般我们`Mock`是通过依赖注入的方式，这种方式可以方便的更改依赖的对象的实现，而依赖注入的方式有好几种:
+
+* 通过变量赋值
+* 通过参数传递
+* 通过Set/Get方法
+
+### 一个外部依赖的例子
+一个`User`包, 有一个通过`uid`获取分数`score`的方法
+```go
+package user
+
+import (
+        "strconv"
+
+        "github.com/go-redis/redis"
+)
+
+func Score(uid int) (int, error) {
+        client := redis.NewClient(&redis.Options{
+                Addr:     "localhost:6379",
+                Password: "",
+                DB:       0,
+        })
+
+        _, err := client.Ping().Result()
+        if err != nil {
+                return -1, err
+        }
+
+        val, err := client.Get(strconv.Itoa(uid)).Result()
+        if err == redis.Nil {
+                return -1, nil
+        }
+        if err != nil {
+                return -1, err
+        }
+
+        return strconv.Atoi(val)
+}
+```
+一个`Class`包，通过调用`user.Score`方法获取分数，根据分数给这个用户一个等级:
+```go
+package class
+
+import (
+        "user"
+)
+
+func UserLevel(uid int) string {
+        score, err := user.Score(uid)
+        if err != nil {
+                return "E"
+        }
+
+        switch {
+        case score < 0:
+                return "N"
+        case score <= 60:
+                return "C"
+        case score <= 90:
+                return "B"
+        case score <= 100:
+                return "A"
+        default:
+                return "W"
+        }
+}
+
+```
+现在我们要给`UserLevel`写单元测试，该怎么写呢？
+```go
+package class
+
+import (
+        "testing"
+)
+
+func TestUserLevel(t *testing.T) {
+        tests := map[string]struct {
+                input int
+                want  string
+        }{
+                "not found user": {input: 1, want: "N"},
+                "C level":        {input: 2, want: "C"},
+                "B level":        {input: 3, want: "B"},
+                "A level":        {input: 4, want: "A"},
+                "Got Error":      {input: 5, want: "E"},
+                "Wrong Score":    {input: 5, want: "W"},
+        }
+
+        for name, tc := range tests {
+                got := UserLevel(tc.input)
+                t.Run(name, func(t *testing.T) {
+                        if tc.want != got {
+                                t.Fatalf("expected: %s, got %s", tc.want, got)
+                        }
+                })
+        }
+}
+```
+运行单元测试:
+```
+$ go test
+--- FAIL: TestUserLevel (0.02s)
+    --- FAIL: TestUserLevel/not_found_user (0.00s)
+        class_test.go:24: expected: N, got E
+    --- FAIL: TestUserLevel/C_level (0.00s)
+        class_test.go:24: expected: C, got E
+    --- FAIL: TestUserLevel/B_level (0.00s)
+        class_test.go:24: expected: B, got E
+    --- FAIL: TestUserLevel/A_level (0.00s)
+        class_test.go:24: expected: A, got E
+    --- FAIL: TestUserLevel/Wrong_Score (0.00s)
+        class_test.go:24: expected: W, got E
+FAIL
+exit status 1
+FAIL    class   0.023s
+
+```
+可以看到除了`Got Error`运行成功，其他的都失败了，因为我们本地并没有开启`redis`服务，所以是连不上的。如果我们要让这个测试用例通过，显然我们不能真的开启一个`redis`的服务，我们需要对`user.Score`进行`Mock`
+
+####  Mock框架
+
+go中`mock`的支持也有很多种:
+* [github.com/golang/mock](https://github.com/golang/mock)
+* [github.com/bouk/monkey](https://github.com/bouk/monkey)
+* [github.com/smartystreets/goconvey](https://github.com/smartystreets/goconvey)
+* [github.com/stretchr/testify](https://github.com/stretchr/testify)
+* [github.com/prashantv/gostub](https://github.com/prashantv/gostub)
+
+每个框架都有自己的用法， 这里我那`github.com/bouk/monkey`来举例子, 改造一下我们的单元测试:
+```go
+package class
+
+import (
+    "errors"
+    "testing"
+
+    "bou.ke/monkey"
+    "user"
+)
+
+func TestUserLevel(t *testing.T) {
+        tests := map[string]struct {
+                input int
+                want  string
+        }{
+                "not found user": {input: 1, want: "N"},
+                "C level":        {input: 2, want: "C"},
+                "B level":        {input: 3, want: "B"},
+                "A level":        {input: 4, want: "A"},
+                "Got Error":      {input: 5, want: "E"},
+                "Wrong Score":    {input: 6, want: "W"},
+        }
+
+        monkey.Patch(user.Score, mockScore)
+        for name, tc := range tests {
+                got := UserLevel(tc.input)
+                t.Run(name, func(t *testing.T) {
+                        if tc.want != got {
+                                t.Fatalf("expected: %s, got %s", tc.want, got)
+                        }
+                })
+        }
+}
+
+func mockScore(uid int) (int, error) {
+        switch uid {
+        case 1:
+                return -1, nil
+        case 2:
+                return 10, nil
+        case 3:
+                return 70, nil
+        case 4:
+                return 95, nil
+        case 5:
+                return -1, errors.New("something was error")
+        case 6:
+                return 130, nil
+        }
+        return -1, nil
+}
+```
+运行测试:
+```
+$ go test -v
+=== RUN   TestUserLevel
+=== RUN   TestUserLevel/not_found_user
+=== RUN   TestUserLevel/C_level
+=== RUN   TestUserLevel/B_level
+=== RUN   TestUserLevel/A_level
+=== RUN   TestUserLevel/Got_Error
+=== RUN   TestUserLevel/Wrong_Score
+--- PASS: TestUserLevel (0.00s)
+    --- PASS: TestUserLevel/not_found_user (0.00s)
+    --- PASS: TestUserLevel/C_level (0.00s)
+    --- PASS: TestUserLevel/B_level (0.00s)
+    --- PASS: TestUserLevel/A_level (0.00s)
+    --- PASS: TestUserLevel/Got_Error (0.00s)
+    --- PASS: TestUserLevel/Wrong_Score (0.00s)
+PASS
+ok      class   0.014s
+```
+
+#### 面相接口编程
+前面通过`Mock`框架我们可以在测试的时候替换原来的实现，这样就可以很方便的进行单元测试了,但是这种代码的实现方式其实并不符合面相对象设计的原则, 下面提出两个问题:
+1. 如果我们不依赖`Mock`框架该如何`mock`?
+2. 如果有一天我们不从`redis`获取数据，而是要从`mysql`获取数据了，怎么改？直接改`Score`函数么？那么如果有一天又要从`redis`获取数据呢？或者有的调用者是从`redis`获取数据，有的是从`mysql`获取数据怎么办？
+
+可见上面的方式不太灵活，面对复杂多变的需求无法很好的满足。这时就要求我们改用面相接口编程, 下面是我们使用面相接口编程的方式改进了上面的实现:
+`user`包增加了一个`User`接口，这个接口有一个函数`Score`, 然后定义了一个`defaultUser`, 并且实现了`Score`函数，最后定一个`New`函数向外输出这个`defaultUser`:
+```go
+package user
+
+import (
+    "strconv"
+
+    "github.com/go-redis/redis"
+)
+
+type User interface {
+    Score(int) (int, error)
+}
+
+func New() User {
+    return defaultUser{}
+}
+
+type defaultUser struct{}
+
+func (defaultUser) Score(uid int) (int, error) {
+    client := redis.NewClient(&redis.Options{
+        Addr:     "localhost:6379",
+        Password: "",
+        DB:       0,
+    })
+
+    _, err := client.Ping().Result()
+    if err != nil {
+        return -1, err
+    }
+
+    val, err := client.Get(strconv.Itoa(uid)).Result()
+    if err == redis.Nil {
+        return -1, nil
+    }
+    if err != nil {
+        return -1, err
+    }
+
+    return strconv.Atoi(val)
+}
+```
+`class`包调用由原来的通过包直接调用改为了增加一个`u`变量, 然后调用`u.Score`来获取信息:
+```go
+package class
+
+import (
+    "user"
+)
+
+var u = user.New()
+
+func UserLevel(uid int) string {
+    score, err := u.Score(uid)
+    if err != nil {
+        return "E"
+    }
+
+    switch {
+    case score < 0:
+        return "N"
+    case score <= 60:
+        return "C"
+    case score <= 90:
+        return "B"
+    case score <= 100:
+        return "A"
+    default:
+        return "W"
+    }
+}
+```
+`class_test`不再依赖`mock`框架，而是实现了自己的`User`接口`mockUser`，替换了`user`包的`defaultUser`:
+```go
+package class
+
+import (
+    "errors"
+    "testing"
+)
+
+func TestUserLevel(t *testing.T) {
+        tests := map[string]struct {
+                input int
+                want  string
+        }{
+                "not found user": {input: 1, want: "N"},
+                "C level":        {input: 2, want: "C"},
+                "B level":        {input: 3, want: "B"},
+                "A level":        {input: 4, want: "A"},
+                "Got Error":      {input: 5, want: "E"},
+                "Wrong Score":    {input: 6, want: "W"},
+        }
+
+        u = mockUser{}
+        for name, tc := range tests {
+                got := UserLevel(tc.input)
+                t.Run(name, func(t *testing.T) {
+                        if tc.want != got {
+                                t.Fatalf("expected: %s, got %s", tc.want, got)
+                        }
+                })
+        }
+}
+
+type mockUser struct{}
+
+func (mockUser) Score(uid int) (int, error) {
+        switch uid {
+        case 1:
+                return -1, nil
+        case 2:
+                return 10, nil
+        case 3:
+                return 70, nil
+        case 4:
+                return 95, nil
+        case 5:
+                return -1, errors.New("something was error")
+        case 6:
+                return 130, nil
+        }
+        return -1, nil
+}
+
+```
+运行单元测试:
+```
+$ go test -v
+=== RUN   TestUserLevel
+=== RUN   TestUserLevel/not_found_user
+=== RUN   TestUserLevel/C_level
+=== RUN   TestUserLevel/B_level
+=== RUN   TestUserLevel/A_level
+=== RUN   TestUserLevel/Got_Error
+=== RUN   TestUserLevel/Wrong_Score
+--- PASS: TestUserLevel (0.00s)
+    --- PASS: TestUserLevel/not_found_user (0.00s)
+    --- PASS: TestUserLevel/C_level (0.00s)
+    --- PASS: TestUserLevel/B_level (0.00s)
+    --- PASS: TestUserLevel/A_level (0.00s)
+    --- PASS: TestUserLevel/Got_Error (0.00s)
+    --- PASS: TestUserLevel/Wrong_Score (0.00s)
+PASS
+ok      class   0.005s
+```
+
+下面再来看上面提出的两个问题:
+1. 如果我们不依赖`Mock`框架该如何`mock`?
+答: 根据上面的实现可以看到，我们没有借助任何框架同样完成了`Mock`的效果
+2. 如果有一天我们不从`redis`获取数据，而是要从`mysql`获取数据了，怎么改？直接改`Score`函数么？那么如果有一天又要从`redis`获取数据呢？或者有的调用者是从`redis`获取数据，有的是从`mysql`获取数据怎么办？
+答: 由于面相接口编程，我们可以在user中增加一个实例实现从`mysql`获取数据的方法，调用者可以根据需求选择不同的实例，而且如果调用者对这个数据来源有自己的需求，甚至可以自己实现这个接口。
+
+#### 工厂方法
+上面的实现我们可以看到每次调用`var u =  user.New()`都会新建一个`defaultUser`对象，对于有些需要共享`defaultUser`状态的情况下，例如`defaultUser`中有一个常驻内存共享的数据, 我们在多个包调用的时候其实那得是不同的对象，为了共享这个数据我们把`user.New`改成下面的实现:
+```go
+var du = defaultUser{}
+
+func New() User {
+    return du
+}
+
+```
+这样每次返回的其实都是同一个`defaultUser`。
+
+#### 更方便的调用
+上面我们看出，修改为面相接口编程后我们需要通过依赖注入传递对象，但是这样会对调用者照成麻烦，我们是否可以在优化一下呢?
+我们在`user`中增加一个函数:
+```go
+func Score(uid int) (int, error) {
+    return du.Score(uid)
+}
+```
+这样我们就可以通过`user.Score`调用`du.Score`函数了，所以`class.go`的实现可以改为:
+```go
+package class
+
+import (
+        "user"
+)
+
+func UserLevel(uid int) string {
+        score, err := user.Score(uid)
+        if err != nil {
+                return "E"
+        }
+
+        switch {
+        case score < 0:
+                return "N"
+        case score <= 60:
+                return "C"
+        case score <= 90:
+                return "B"
+        case score <= 100:
+                return "A"
+        default:
+                return "W"
+        }
+}
+```
+
+看上去不错，但是我们如何进行依赖注入呢？不然单元测试使用的是默认实现，我们没办法做单元测试了。前面其实我们提过依赖注入的方式有一个`Get/Set`方式，我们可以再修改一下`user`包:
+```go
+package user
+
+import (
+    "strconv"
+
+    "github.com/go-redis/redis"
+)
+
+type User interface {
+    Score(int) (int, error)
+}
+
+func Score(uid int) (int, error) {
+    if definedUser != nil {
+        return definedUser.Score(uid)
+    }
+    return du.Score(uid)
+}
+
+var definedUser User
+
+func SetUser(u User) {
+    definedUser = u
+}
+
+var du = defaultUser{}
+
+func New() User {
+    return du
+}
+
+type defaultUser struct{}
+
+func (defaultUser) Score(uid int) (int, error) {
+    client := redis.NewClient(&redis.Options{
+        Addr:     "localhost:6379",
+        Password: "",
+        DB:       0,
+    })
+
+    _, err := client.Ping().Result()
+    if err != nil {
+        return -1, err
+    }
+
+    val, err := client.Get(strconv.Itoa(uid)).Result()
+    if err == redis.Nil {
+        return -1, nil
+    }
+    if err != nil {
+        return -1, err
+    }
+
+    return strconv.Atoi(val)
+}
+```
+`class`不用修改，`class_test`修改为:
+```go
+package class
+
+import (
+    "errors"
+    "testing"
+
+    "user"
+)
+
+func TestUserLevel(t *testing.T) {
+    tests := map[string]struct {
+        input int
+        want  string
+    }{
+        "not found user": {input: 1, want: "N"},
+        "C level":        {input: 2, want: "C"},
+        "B level":        {input: 3, want: "B"},
+        "A level":        {input: 4, want: "A"},
+        "Got Error":      {input: 5, want: "E"},
+        "Wrong Score":    {input: 6, want: "W"},
+    }
+
+    user.SetUser(mockUser{})
+    for name, tc := range tests {
+        got := UserLevel(tc.input)
+        t.Run(name, func(t *testing.T) {
+            if tc.want != got {
+                t.Fatalf("expected: %s, got %s", tc.want, got)
+            }
+        })
+    }
+}
+
+type mockUser struct{}
+
+func (mockUser) Score(uid int) (int, error) {
+    switch uid {
+    case 1:
+        return -1, nil
+    case 2:
+        return 10, nil
+    case 3:
+        return 70, nil
+    case 4:
+        return 95, nil
+    case 5:
+        return -1, errors.New("something was error")
+    case 6:
+        return 130, nil
+    }
+    return -1, nil
+}
+
+```
+我们通过`user.SetUser`方法用自己的实现替换了之前默认的实现，这样我们就可以方便的进行单元测试了。
+运行单元测试:
+```
+$ go test -v
+=== RUN   TestUserLevel
+=== RUN   TestUserLevel/Wrong_Score
+=== RUN   TestUserLevel/not_found_user
+=== RUN   TestUserLevel/C_level
+=== RUN   TestUserLevel/B_level
+=== RUN   TestUserLevel/A_level
+=== RUN   TestUserLevel/Got_Error
+--- PASS: TestUserLevel (0.00s)
+    --- PASS: TestUserLevel/Wrong_Score (0.00s)
+    --- PASS: TestUserLevel/not_found_user (0.00s)
+    --- PASS: TestUserLevel/C_level (0.00s)
+    --- PASS: TestUserLevel/B_level (0.00s)
+    --- PASS: TestUserLevel/A_level (0.00s)
+    --- PASS: TestUserLevel/Got_Error (0.00s)
+PASS
+ok      class   0.011s
+```
+在大多数情况下，我们都是使用的默认实现，只有在我们必须要修改依赖的实现，或者单元测试时才会使用其他的实现，所以为了大多数的场景下调用简单，我们应该尽量使用这种方式来实现。
+
+## 总结
+
+本文主要回顾了一下关于单元测试的一些理论知识: 
+* 测试的粒度应该是测试包中的可导出函数
+* 测试的原则告诉我们应该是变测试变开发, 相互交替进行
+* 测试的目的应该是测试行为，而不是测试具体的实现
+
+关于Go的单元测试可以分为三个阶段:
+* 初级阶段: 主要是认识Go的单元测试基本写法，以及如何利用Go的工具链运行单元测试及查看单元测试覆盖率的情况
+* 进阶阶段: 主要是举一个单元测试的例子，通过不断改进这个单元测试的写法来告诉我们如何写出更好的单元测试
+* 高级阶段: 介绍了如何写出可测试的函数，面对复杂的调用和多变得需求如何利用面相接口编程和依赖注入改进我们的程序的写法
+
+
 
 ## 参考
 [Test-Driven Development By Example](https://www.eecs.yorku.ca/course_archive/2003-04/W/3311/sectionM/case_studies/money/KentBeck_TDD_byexample.pdf)
@@ -485,3 +1053,4 @@ go tRunner(t, f)
 [边界条件测试](https://baike.baidu.com/item/%E8%BE%B9%E7%95%8C%E6%9D%A1%E4%BB%B6%E6%B5%8B%E8%AF%95)
 [代码整洁之道](https://item.jd.com/10064006.html)
 [Mocks Aren't Stubs](https://martinfowler.com/articles/mocksArentStubs.html)
+[TestDouble](https://martinfowler.com/bliki/TestDouble.html)
