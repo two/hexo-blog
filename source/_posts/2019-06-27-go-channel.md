@@ -534,3 +534,9 @@ func closechan(c *hchan) {
 
 下面是其图形化展示:
 ![](/assets/img/go/channel/no-buf-chan.gif)
+
+## 参考
+[图解Go的channel底层原理](https://mp.weixin.qq.com/s/w9_ycAYD6SRhaxy-4BnvwA)
+Go 1.12 runtime/chan.go
+[GopherCon 2017: Kavya Joshi - Understanding Channels](https://www.youtube.com/watch?v=KBZlN0izeiY )
+
