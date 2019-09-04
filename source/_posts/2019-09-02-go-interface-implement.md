@@ -118,6 +118,10 @@ type typeOff int32
     ```
 4.  执行完函数调用用会把返回值`unsafe.Pointer`放到`8(SP)`, 然后在放入 `AX`
 5. `MOV $3,(AX)` 向表示寄存器`AX`包含的地址对应的值设置为常量`3`
+6. `autotmp`是一个临时变量，是为了在程序内复用全局临时变量, 防止变量被修改:
+    https://github.com/golang/go/issues/21557, 
+    https://github.com/golang/go/issues/29547
+    **具体需要再深入研究**
 
 ```go
 9    var inter interface{} = num
@@ -386,7 +390,7 @@ type imethod struct {
 对应的汇编:
 
 ```x86asm
-    0x0066 00102 (main.go:24)   TESTB   AL, (CX); 求与 AL & (CX), 检查 CX 是否为 nil
+    0x0066 00102 (main.go:24)   TESTB   AL, (CX); 求与 AL & (CX), 检查 CX 是否为 nil, AL 是 AX 的低8位, AH 是 AX 的高8位
     0x0068 00104 (main.go:24)   MOVQ    go.itab."".Adder,"".Mather+24(SB), CX ; Add函数的入口地址放到 CX
     0x006f 00111 (main.go:24)   MOVQ    AX, (SP)
     0x0073 00115 (main.go:24)   MOVQ    $8589934604, AX ; 将 12, 2两个参数赋值到 AX 中
@@ -442,6 +446,99 @@ echo 'obase=2;8589934604' | bc
      +---+             +----+                 
 ```
  其实就是`2`和`12`两个`8`字节的数据组合在一起放到了`AX`寄存器中, 正是`Add(12,2)`的两个参数。
+
+## 断言
+
+`interface{}` 是一个抽象的类型，如果需要转换为具体的类型，则需要类型断言, 类型断言其实有两个:
+1. 类型判断: 判断类型是否一致
+2. 类型转换: 类型一致取出具体的数据
+
+下面看一个例子:
+```go
+package main
+
+var j uint32
+var r int32
+var ok bool
+var eface interface{}
+
+func assertion() {
+    i := uint64(42)
+    eface = i
+    j = eface.(uint32)
+    r, ok = eface.(int32)
+}
+```
+对应的汇编语言如下:
+```x86asm
+    0x0066 00102 (eface.go:11)  MOVL    $0, ""..autotmp_1+36(SP) ; 初始化0值
+    0x006e 00110 (eface.go:11)  MOVQ    "".eface+8(SB), AX ; 把 data 放到 AX 寄存器
+    0x0075 00117 (eface.go:11)  MOVQ    "".eface(SB), CX ; 把 _type 放到 CX 寄存器
+    0x007c 00124 (eface.go:11)  LEAQ    type.uint32(SB), DX ; 把 uint32的_type 值放到 DX 寄存器
+    0x0083 00131 (eface.go:11)  CMPQ    CX, DX; 比较 eface._type == uint32 ?
+    0x0086 00134 (eface.go:11)  JEQ 138 ; JEQ = jump if equal, 如果类型相等就跳转到 138行
+    0x0088 00136 (eface.go:11)  JMP 246 ;  类型不匹配, 跳转到 246 行, 出现 panic
+    0x008a 00138 (eface.go:11)  MOVL    (AX), AX ; JEQ 跳转的行 138, 把(AX)地址对应的值放到 AX 寄存器，也就是 eface.data
+    0x008c 00140 (eface.go:11)  MOVL    AX, ""..autotmp_1+36(SP) ; 临时变量赋值
+    0x0090 00144 (eface.go:11)  MOVL    AX, "".j(SB) ; 赋值给变量 j
+    0x0096 00150 (eface.go:12)  MOVQ    "".eface+8(SB), AX ;  把 data 放到 AX 寄存器
+    0x009d 00157 (eface.go:12)  LEAQ    type.int32(SB), CX ; 把 int32 的_type 值放到 DX 寄存器
+    0x00a4 00164 (eface.go:12)  CMPQ    "".eface(SB), CX ; 比较 eface._type == int32 ?
+    0x00ab 00171 (eface.go:12)  JEQ 175 ; 如果类型相等就跳转到 175 行
+    0x00ad 00173 (eface.go:12)  JMP 223 ; 跳转到 223 行，输出 panic
+    0x00af 00175 (eface.go:12)  MOVL    (AX), AX; 类型相等就把 data 放到 AX
+    0x00b1 00177 (eface.go:12)  MOVL    $1, CX 把常量 1 放到 CX
+    0x00b6 00182 (eface.go:12)  JMP 184 ; 调到 184 行
+    0x00b8 00184 (eface.go:12)  MOVL    AX, ""..autotmp_2+32(SP)
+    0x00bc 00188 (eface.go:12)  MOVB    CL, ""..autotmp_3+31(SP) ; CL 是 CX 的低 8 位
+    0x00c0 00192 (eface.go:12)  MOVL    ""..autotmp_2+32(SP), AX
+    0x00c4 00196 (eface.go:12)  MOVL    AX, "".r(SB) ; AX 是 data 的值， 放到 r 变量中
+    0x00ca 00202 (eface.go:12)  MOVBLZX ""..autotmp_3+31(SP), AX; MOVBLZX 用 0 扩展，放到 autotmp_3 变量
+    0x00cf 00207 (eface.go:12)  MOVB    AL, "".ok(SB); AL 低8位赋值给 ok ，因为ok 是 bool 类型的， 根据字节对齐，占 8 位
+    0x00d5 00213 (eface.go:13)  MOVQ    56(SP), BP
+    0x00da 00218 (eface.go:13)  ADDQ    $64, SP
+    0x00de 00222 (eface.go:13)  RET
+    0x00df 00223 (eface.go:13)  XORL    AX, AX ; eface.type != int32 情况下，执行本行, XOR是异或，所以 AX^AX , 结果为 0
+    0x00e1 00225 (eface.go:13)  XORL    CX, CX; 同上， CX 结果为 0
+    0x00e3 00227 (eface.go:12)  JMP 184 ; 跳转到 184 行执行，这里要注意的是 AX, CX 寄存器已经为0， 所有后面 ok 的值也位0了
+    0x00e5 00229 (eface.go:10)  LEAQ    "".eface+8(SB), DI
+    0x00ec 00236 (eface.go:10)  CALL    runtime.gcWriteBarrier(SB)
+    0x00f1 00241 (eface.go:10)  JMP 102
+    0x00f6 00246 (eface.go:11)  MOVQ    CX, (SP) ; 一个返回值表达式类型不匹配时，执行到这里, CX 类型值放到(SP)作为第一个参数
+    0x00fa 00250 (eface.go:11)  MOVQ    DX, 8(SP); 想要的类型从 DX 放到 8(SP) 作为第二个参数
+    0x00ff 00255 (eface.go:11)  LEAQ    type.interface {}(SB), AX ; interface 类型的地址放到 AX
+    0x0106 00262 (eface.go:11)  MOVQ    AX, 16(SP); AX 值放到 16(SP) 作为第三个参数
+    0x010b 00267 (eface.go:11)  CALL    runtime.panicdottypeE(SB); 执行函数调用，使用前面的三个参数，返回 panic
+```
+ 需要注意的点:
+1. 当使用返回值为一个的表达式时，如果出现类型不匹配，会触发`panic`
+2. 当使用两个返回值的表达式时,  `r`, `ok`的值随着`AX`, `CX`的值 改变:
+分为两种情况: 
+当类型相等时: `AX` 值为`eface.data`, `CX` 的值为`1`
+赋值的过程如下:
+```x86asm
+    0x00b8 00184 (eface.go:12)  MOVL    AX, ""..autotmp_2+32(SP)
+    0x00bc 00188 (eface.go:12)  MOVB    CL, ""..autotmp_3+31(SP) ; CL 是 CX 的低 8 位, CX 是 1, 二进制是: 0000000000000001; CL 就是: 00000001
+    0x00c0 00192 (eface.go:12)  MOVL    ""..autotmp_2+32(SP), AX
+    0x00c4 00196 (eface.go:12)  MOVL    AX, "".r(SB) ; AX 是 data 的值， 放到 r 变量中
+    0x00ca 00202 (eface.go:12)  MOVBLZX ""..autotmp_3+31(SP), AX; MOVBLZX 用 0 扩展，放到 autotmp_3 变量, autotmp_3 是 00000001, 扩展后是: 0000000000000001
+    0x00cf 00207 (eface.go:12)  MOVB    AL, "".ok(SB); AL 低8位赋值给 ok ，因为ok 是 bool 类型的， 根据字节对齐，占 8 位, ok 值为: 00000001
+```
+ 当类型不相等时: `AX`和`CX`的值都初始化位空
+```x86asm
+    0x00df 00223 (eface.go:13)  XORL    AX, AX ; eface.type != int32 情况下，执行本行, XOR是异或，所以 AX^AX , 结果为 0
+    0x00e1 00225 (eface.go:13)  XORL    CX, CX; 同上， CX 结果为 0
+    0x00e3 00227 (eface.go:12)  JMP 184 ; 跳转到 184 行执行，这里要注意的是 AX, CX 寄存器已经为0， 所有后面 ok 的值也位0了
+```
+ 赋值过程如下:
+```x86asm
+    0x00b8 00184 (eface.go:12)  MOVL    AX, ""..autotmp_2+32(SP)
+    0x00bc 00188 (eface.go:12)  MOVB    CL, ""..autotmp_3+31(SP) ; CL 是 CX 的低 8 位, CX 是 0, 二进制是: 0000000000000000; CL 就是: 00000000
+    0x00c0 00192 (eface.go:12)  MOVL    ""..autotmp_2+32(SP), AX
+    0x00c4 00196 (eface.go:12)  MOVL    AX, "".r(SB) ; AX 是 data 的值， 放到 r 变量中, AX 是空值，所以 r == nil
+    0x00ca 00202 (eface.go:12)  MOVBLZX ""..autotmp_3+31(SP), AX; MOVBLZX 用 0 扩展，放到 autotmp_3 变量, autotmp_3 是 00000000, 扩展后是: 0000000000000000
+    0x00cf 00207 (eface.go:12)  MOVB    AL, "".ok(SB); AL 低8位赋值给 ok ，因为ok 是 bool 类型的， 根据字节对齐，占 8 位, ok 值为: 00000000
+```
 
 ## 参考文献,
 [理解Go语言模型(1)：interface底层详解](https://yougg.github.io/2017/03/27/%E7%90%86%E8%A7%A3go%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B1interface%E5%BA%95%E5%B1%82%E8%AF%A6%E8%A7%A3/)
