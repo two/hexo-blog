@@ -558,7 +558,7 @@ valueCtx : Context
 
 
 Context <|.. emptyCtx
-timerCtx *-- *cancelCtx
+timerCtx *-- cancelCtx
 canceler <|.. cancelCtx
 Context <|.. cancelCtx
 Context <|.. valueCtx
