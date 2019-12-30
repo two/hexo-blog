@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns="http://www.w3.org/2000/svg" xmlns:xl="http://www.w3.org/1999/xlink" viewBox="128 113 514 318" width="514" height="318">
+  <defs>
+    <font-face font-family="Operator Mono" font-size="18" panose-1="2 0 0 9 0 0 0 0 0 0" units-per-em="1000" underline-position="-83" underline-thickness="64" slope="0" x-height="490" cap-height="620" ascent="960.002" descent="-240.0005" font-weight="300">
+      <font-face-src>
+        <font-face-name name="OperatorMono-Book"/>
+      </font-face-src>
+    </font-face>
+    <marker orient="auto" overflow="visible" markerUnits="strokeWidth" id="FilledArrow_Marker" stroke-linejoin="miter" stroke-miterlimit="10" viewBox="-1 -4 10 8" markerWidth="10" markerHeight="8" color="#ff2600">
+      <g>
+        <path d="M 8 0 L 0 -3 L 0 3 Z" fill="currentColor" stroke="currentColor" stroke-width="1"/>
+      </g>
+    </marker>
+    <marker orient="auto" overflow="visible" markerUnits="strokeWidth" id="FilledArrow_Marker_2" stroke-linejoin="miter" stroke-miterlimit="10" viewBox="-1 -4 10 8" markerWidth="10" markerHeight="8" color="black">
+      <g>
+        <path d="M 8 0 L 0 -3 L 0 3 Z" fill="currentColor" stroke="currentColor" stroke-width="1"/>
+      </g>
+    </marker>
+  </defs>
+  <metadata> Produced by OmniGraffle 7.11.4 
+    <dc:date>2019-12-18 08:04:22 +0000</dc:date>
+  </metadata>
+  <g id="Canvas_1" fill="none" fill-opacity="1" stroke-opacity="1" stroke-dasharray="none" stroke="none">
+    <title>Canvas 1</title>
+    <rect fill="white" x="128" y="113" width="514" height="318"/>
+    <g id="Canvas_1: Layer 1">
+      <title>Layer 1</title>
+      <g id="Graphic_2">
+        <rect x="294" y="115.5" width="100.5" height="51.5" fill="white"/>
+        <path d="M 293.66003 115.50058 L 395.03884 115.32898 M 394.707 114.96938 L 394.591 167.27719 M 394.90677 167.05565 L 293.7697 167.18437 M 294.01644 167.6456 L 293.99987 115.07939 M 293.72244 115.38798 L 394.7687 115.25343 M 394.83123 114.90702 L 394.70355 166.99366 M 394.9693 167.0263 L 294.07886 167.17514 M 294.06657 167.5831 L 294.043 115.4375" stroke="gray" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4.0,4.0" stroke-width="1"/>
+      </g>
+      <g id="Graphic_5">
+        <rect x="130" y="201.75" width="161.5" height="51.5" fill="white"/>
+        <path d="M 129.57928 201.7503 L 291.83176 201.6362 M 291.51318 201.4151 L 291.3329 253.728 M 291.526 253.23867 L 129.78768 253.13977 M 130.11677 253.32885 L 129.99947 201.51738 M 129.64177 201.67542 L 291.57488 201.51982 M 291.62887 201.35279 L 291.42532 253.17615 M 291.58847 253.21746 L 130.17882 253.1262 M 130.15613 253.2664 L 130.02408 201.68759" stroke="gray" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4.0,4.0" stroke-width="1"/>
+      </g>
+      <g id="Graphic_6">
+        <rect x="406.5" y="201" width="233" height="51.5" fill="white"/>
+        <path d="M 406.17736 200.99967 L 639.7627 201.23905 M 639.44736 201.06367 L 639.5835 252.75327 M 639.9824 252.2994 L 406.08534 252.29194 M 406.31557 252.51494 L 406.50106 200.70504 M 406.2399 200.8957 L 639.5103 201.17112 M 639.5394 201.0011 L 639.68675 252.23678 M 640.0449 252.23924 L 406.37886 252.25573 M 406.35133 252.45234 L 406.51777 200.93734" stroke="gray" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4.0,4.0" stroke-width="1"/>
+      </g>
+      <g id="Graphic_13">
+        <rect x="422.5" y="215" width="53" height="23.5" fill="white"/>
+        <text transform="translate(427.5 216.25)" fill="black">
+          <tspan font-family="Operator Mono" font-size="18" font-weight="300" fill="black" x="1.7" y="17">C1.1</tspan>
+        </text>
+      </g>
+      <g id="Graphic_14">
+        <rect x="496.5" y="215" width="53" height="23.5" fill="yellow"/>
+        <text transform="translate(501.5 216.25)" fill="black">
+          <tspan font-family="Operator Mono" font-size="18" font-weight="300" fill="black" x="1.7" y="17">C1.2</tspan>
+        </text>
+      </g>
+      <g id="Graphic_15">
+        <rect x="570.5" y="215" width="53" height="23.5" fill="white"/>
+        <text transform="translate(575.5 216.25)" fill="black">
+          <tspan font-family="Operator Mono" font-size="18" font-weight="300" fill="black" x="1.7" y="17">C1.3</tspan>
+        </text>
+      </g>
+      <g id="Graphic_17">
+        <rect x="317.75" y="129.5" width="53" height="23.5" fill="yellow"/>
+        <text transform="translate(322.75 130.75)" fill="black">
+          <tspan font-family="Operator Mono" font-size="18" font-weight="300" fill="black" x="11.6" y="17">A1</tspan>
+        </text>
+      </g>
+      <g id="Graphic_21">
+        <rect x="199" y="377" width="233" height="51.5" fill="white"/>
+        <path d="M 198.6486 376.99997 L 432.2273 377.02318 M 431.97965 376.79227 L 431.7967 428.7573 M 431.9535 428.462 L 198.55027 428.32137 M 198.81534 428.6812 L 199.00172 376.52 M 198.7111 376.89706 L 432.04134 376.9406 M 432.0915 376.72994 L 431.9206 428.3996 M 432.016 428.44255 L 198.87912 428.26106 M 198.85972 428.6186 L 199.04814 376.93745" stroke="gray" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4.0,4.0" stroke-width="1"/>
+      </g>
+      <g id="Graphic_20">
+        <rect x="220" y="391" width="53" height="23.5" fill="white"/>
+        <text transform="translate(225 392.25)" fill="black">
+          <tspan font-family="Operator Mono" font-size="18" font-weight="300" fill="black" x="1.7" y="17">E1.1</tspan>
+        </text>
+      </g>
+      <g id="Graphic_19">
+        <rect x="294" y="391" width="53" height="23.5" fill="yellow"/>
+        <text transform="translate(299 392.25)" fill="black">
+          <tspan font-family="Operator Mono" font-size="18" font-weight="300" fill="black" x="1.7" y="17">E1.2</tspan>
+        </text>
+      </g>
+      <g id="Graphic_18">
+        <rect x="368" y="391" width="53" height="23.5" fill="white"/>
+        <text transform="translate(373 392.25)" fill="black">
+          <tspan font-family="Operator Mono" font-size="18" font-weight="300" fill="black" x="1.7" y="17">E1.3</tspan>
+        </text>
+      </g>
+      <g id="Graphic_23">
+        <rect x="556" y="289" width="83.5" height="51.5" fill="white"/>
+        <path d="M 555.8448 288.99958 L 639.5892 289.2284 M 639.3498 289.0894 L 639.2929 340.80786 M 639.4913 340.58346 L 555.7706 340.6257 M 556.21845 341.05335 L 555.99904 288.7703 M 555.90737 288.901 L 639.4123 289.11818 M 639.4143 289.0269 L 639.38095 340.5211 M 639.55385 340.5486 L 556.2792 340.5826 M 556.25565 340.99096 L 556.0355 288.9376" stroke="gray" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4.0,4.0" stroke-width="1"/>
+      </g>
+      <g id="Graphic_22">
+        <rect x="570" y="303" width="53" height="23.5" fill="white"/>
+        <text transform="translate(575 304.25)" fill="black">
+          <tspan font-family="Operator Mono" font-size="18" font-weight="300" fill="black" x="1.7" y="17">F1.1</tspan>
+        </text>
+      </g>
+      <g id="Graphic_24">
+        <rect x="146.5" y="215.75" width="53" height="23.5" fill="white"/>
+        <text transform="translate(151.5 217)" fill="black">
+          <tspan font-family="Operator Mono" font-size="18" font-weight="300" fill="black" x="1.7" y="17">B1.1</tspan>
+        </text>
+      </g>
+      <g id="Graphic_25">
+        <rect x="222" y="215.75" width="53" height="23.5" fill="yellow"/>
+        <text transform="translate(227 217)" fill="black">
+          <tspan font-family="Operator Mono" font-size="18" font-weight="300" fill="black" x="1.7" y="17">B1.2</tspan>
+        </text>
+      </g>
+      <g id="Graphic_28">
+        <rect x="478" y="377" width="161.5" height="51.5" fill="white"/>
+        <path d="M 477.5852 377.00003 L 639.7441 376.9892 M 639.5266 376.70728 L 639.5317 429.0592 M 640.0234 428.63774 L 477.8839 428.63533 M 478.2177 428.85877 L 477.9993 376.8336 M 477.6477 376.88096 L 639.58914 376.87466 M 639.59775 376.64478 L 639.6256 428.57523 M 640.0859 428.59564 L 478.27924 428.6052 M 478.2369 428.79645 L 478.004 376.93775" stroke="gray" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4.0,4.0" stroke-width="1"/>
+      </g>
+      <g id="Graphic_27">
+        <rect x="494.5" y="391" width="53" height="23.5" fill="white"/>
+        <text transform="translate(499.5 392.25)" fill="black">
+          <tspan font-family="Operator Mono" font-size="18" font-weight="300" fill="black" x="1.7" y="17">G1.1</tspan>
+        </text>
+      </g>
+      <g id="Graphic_26">
+        <rect x="570" y="391" width="53" height="23.5" fill="white"/>
+        <text transform="translate(575 392.25)" fill="black">
+          <tspan font-family="Operator Mono" font-size="18" font-weight="300" fill="black" x="1.7" y="17">G1.2</tspan>
+        </text>
+      </g>
+      <g id="Graphic_32">
+        <rect x="130" y="289" width="302" height="51.5" fill="white"/>
+        <path d="M 129.60251 289.00013 L 431.96797 288.89833 M 431.7659 288.42657 L 432.0238 340.6603 M 432.224 340.38083 L 129.69955 340.7436 M 130.01693 341.1031 L 129.99986 288.58426 M 129.665 288.8897 L 431.83074 288.79235 M 431.86735 288.36388 L 432.10876 340.31845 M 432.28656 340.3704 L 130.07932 340.6858 M 130.0218 341.04063 L 130.04124 288.9375" stroke="gray" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4.0,4.0" stroke-width="1"/>
+      </g>
+      <g id="Graphic_31">
+        <rect x="146" y="303" width="53" height="23.5" fill="white"/>
+        <text transform="translate(151 304.25)" fill="black">
+          <tspan font-family="Operator Mono" font-size="18" font-weight="300" fill="black" x="1.7" y="17">D1.1</tspan>
+        </text>
+      </g>
+      <g id="Graphic_30">
+        <rect x="220" y="303" width="53" height="23.5" fill="white"/>
+        <text transform="translate(225 304.25)" fill="black">
+          <tspan font-family="Operator Mono" font-size="18" font-weight="300" fill="black" x="1.7" y="17">D1.2</tspan>
+        </text>
+      </g>
+      <g id="Graphic_29">
+        <rect x="294" y="303" width="53" height="23.5" fill="yellow"/>
+        <text transform="translate(299 304.25)" fill="black">
+          <tspan font-family="Operator Mono" font-size="18" font-weight="300" fill="black" x="1.7" y="17">D1.3</tspan>
+        </text>
+      </g>
+      <g id="Graphic_33">
+        <rect x="368" y="303" width="53" height="23.5" fill="yellow"/>
+        <text transform="translate(373 304.25)" fill="black">
+          <tspan font-family="Operator Mono" font-size="18" font-weight="300" fill="black" x="1.7" y="17">D1.4</tspan>
+        </text>
+      </g>
+      <g id="Graphic_46">
+        <path d="M 504.2399 222.3181 L 357.8712 154.06525 L 363.15607 142.73178 L 509.5248 210.98463 Z" fill="yellow"/>
+      </g>
+      <g id="Graphic_48">
+        <path d="M 335.33345 153.33765 L 263.0398 223.15082 L 254.35303 214.1554 L 326.6467 144.34224 Z" fill="yellow"/>
+      </g>
+      <g id="Graphic_50">
+        <path d="M 508.30264 243.3108 L 415.47693 308.30807 L 408.3043 298.0645 L 501.13 233.06723 Z" fill="yellow"/>
+      </g>
+      <g id="Graphic_51">
+        <path d="M 312.81196 309.6631 L 251.84 241.9469 L 261.1331 233.57935 L 322.10505 301.29557 Z" fill="yellow"/>
+      </g>
+      <g id="Graphic_52">
+        <rect x="314.24745" y="324.73495" width="12.505095" height="70.26505" fill="yellow"/>
+      </g>
+      <g id="Graphic_53">
+        <path d="M 394.5 328.8445 L 336.9919 395 L 327.5542 386.7959 L 385.0623 320.64043 Z" fill="yellow"/>
+      </g>
+      <g id="Line_34">
+        <path d="M 331.50387 152.72931 L 268.89547 209.58667 M 331.68754 152.66892 L 269.31387 209.21695" marker-end="url(#FilledArrow_Marker)" stroke="#ff2600" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      </g>
+      <g id="Line_35">
+        <path d="M 367.95176 152.58822 L 489.98947 210.79924 M 368.08557 152.44475 L 489.7965 210.47483" marker-end="url(#FilledArrow_Marker)" stroke="#ff2600" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      </g>
+      <g id="Line_36">
+        <path d="M 172.93677 238.4897 L 172.64181 293.0793 M 173.14042 238.36513 L 172.83886 292.5907" marker-end="url(#FilledArrow_Marker_2)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      </g>
+      <g id="Line_37">
+        <path d="M 257.83893 238.81347 L 304.61803 295.95876 M 257.9731 238.68097 L 304.5932 295.49747" marker-end="url(#FilledArrow_Marker_2)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      </g>
+      <g id="Line_38">
+        <path d="M 182.1446 326.21773 L 230.23115 383.71288 M 182.32333 326.0478 L 230.22917 383.24266" marker-end="url(#FilledArrow_Marker_2)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      </g>
+      <g id="Line_39">
+        <path d="M 246.50624 325.5782 L 246.12983 381.16634 M 246.63446 325.45323 L 246.28318 380.7041" marker-end="url(#FilledArrow_Marker_2)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      </g>
+      <g id="Line_40">
+        <path d="M 320.50655 325.7744 L 319.99995 381.86206 M 320.69296 325.64994 L 320.181 381.409" marker-end="url(#FilledArrow_Marker_2)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      </g>
+      <g id="Line_41">
+        <path d="M 506.27825 238.19946 L 419.9364 297.7258 M 506.47114 238.17293 L 420.37004 297.48524" marker-end="url(#FilledArrow_Marker)" stroke="#ff2600" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      </g>
+      <g id="Line_42">
+        <path d="M 596.93364 238.1667 L 596.86716 293.2537 M 597.1114 238.04175 L 597.0996 292.818" marker-end="url(#FilledArrow_Marker_2)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      </g>
+      <g id="Line_43">
+        <path d="M 586.99856 325.8283 L 537.4454 383.2623 M 587.2076 325.7758 L 537.7745 382.9146" marker-end="url(#FilledArrow_Marker_2)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      </g>
+      <g id="Line_44">
+        <path d="M 596.5002 391.691 L 596.48605 336.35877 M 596.581 391.566 L 596.5751 336.5269" marker-end="url(#FilledArrow_Marker_2)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      </g>
+      <g id="Line_45">
+        <path d="M 384.9385 326.12188 L 336.4259 383.5966 M 385.1417 326.0629 L 336.78243 383.29505" marker-end="url(#FilledArrow_Marker)" stroke="#ff2600" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      </g>
+      <g id="Graphic_55">
+        <rect x="317.75" y="153" width="53" height="8" fill="red"/>
+      </g>
+      <g id="Graphic_56">
+        <rect x="222" y="238" width="53" height="8" fill="red"/>
+      </g>
+      <g id="Graphic_57">
+        <rect x="496.5" y="238" width="53" height="8" fill="red"/>
+      </g>
+      <g id="Graphic_58">
+        <rect x="368" y="324.73495" width="53" height="8" fill="red"/>
+      </g>
+      <g id="Graphic_59">
+        <rect x="294" y="414.5" width="53" height="8" fill="red"/>
+      </g>
+      <g id="Line_60">
+        <line x1="268.1619" y1="239.25" x2="366.33995" y2="297.92148" marker-end="url(#FilledArrow_Marker)" stroke="#ff2600" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      </g>
+    </g>
+  </g>
+</svg>
